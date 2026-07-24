@@ -1,0 +1,3766 @@
+<!DOCTYPE html><!-- build:20260724192935 -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="build" content="20260724175502">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Protocol">
+<title>Protocol Tracker</title>
+<style>
+:root{
+  --bg:#0033A0;--bg2:#0033A0;--card:#1a5cd4;--card2:#0044CC;
+  --accent:#FFFFFF;--text:#FFFFFF;--text2:#BDD4FF;
+  --warn:#F59E0B;--danger:#EF4444;--success:#4ade80;--border:#2255CC;
+  --sans:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+  --mono:'SF Mono','Menlo',monospace;
+  --r:14px;--tabh:72px;--sb:env(safe-area-inset-bottom,20px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-text-size-adjust:100%}
+#app{height:100%;display:flex;flex-direction:column;overflow:hidden}
+
+/* Header */
+.hdr{background:#fff;padding-top:env(safe-area-inset-top,44px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid #0033A0;flex-shrink:0;position:relative;z-index:10}
+.hdr h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#0033A0}
+.hdr h1 span{color:#0033A0}
+.hdr-sub{font-size:13px;color:#5577CC;margin-top:2px}
+
+/* Scroll */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(var(--tabh) + var(--sb) + 48px);min-height:0}
+
+/* Tabs */
+.tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffff;
+  border-top:2px solid #0033A0;display:flex;
+  padding-bottom:var(--sb);height:calc(var(--tabh) + var(--sb));z-index:100}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;background:none;border:none;color:#0033A0;cursor:pointer;
+  font-size:10px;font-family:var(--sans);padding-top:8px;transition:color .15s;opacity:.45}
+.tb.on{color:#0033A0;opacity:1;font-weight:700}
+.tb svg{width:22px;height:22px}
+/* Fade gradient above tab bar */
+.tabs::before{content:'';position:absolute;top:-40px;left:0;right:0;height:40px;
+  background:linear-gradient(to bottom,transparent,rgba(255,255,255,0));
+  pointer-events:none}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(var(--tabh) + var(--sb) + 20px);right:16px;
+  width:56px;height:56px;border-radius:50%;background:#fff;
+  border:2px solid #fff;color:#0033A0;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.25);z-index:99}
+.fab:active{transform:scale(.93)}
+.pulse{position:absolute;width:100%;height:100%;border-radius:50%;
+  border:2px solid rgba(255,255,255,.6);animation:pulse 2s ease-out infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.7);opacity:0}}
+
+/* Cards / rows */
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.sec{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px}
+
+/* Stat bar */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.stat{background:var(--card);border-radius:12px;padding:12px;text-align:center;border:1px solid var(--border)}
+.stat-n{font-size:26px;font-weight:700;font-family:var(--mono)}
+.stat-l{font-size:11px;color:var(--text2);margin-top:2px}
+.c-accent{color:var(--accent)}.c-warn{color:var(--warn)}.c-ok{color:var(--success)}
+
+/* AM/PM columns */
+.ampm{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.col{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+.col-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 13px;background:var(--card2);border-bottom:1px solid var(--border)}
+.col-ttl{font-size:12px;font-weight:700;letter-spacing:.5px}
+.col-ttl.am{color:#fff;font-weight:800}.col-ttl.pm{color:#BDD4FF;font-weight:800}
+.col-cnt{font-size:11px;color:var(--text2);font-family:var(--mono)}
+.ci{display:flex;align-items:center;gap:9px;padding:9px 13px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.ci:last-child{border-bottom:none}
+.ci:active{background:var(--card2)}
+.ci.done{opacity:.5}
+.chk{width:22px;height:22px;border-radius:6px;border:2px solid rgba(255,255,255,.35);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;transition:all .15s}
+.chk.done{background:#fff;border-color:#fff}
+.chk svg{display:none}
+.chk.done svg{display:block}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ci-name{font-size:13px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-sub{font-size:10px;color:var(--text2);margin-top:1px}
+.col-empty{padding:14px 13px;font-size:12px;color:var(--text2);text-align:center}
+
+/* Tick all */
+.tickall{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
+  overflow:hidden;margin-bottom:14px}
+.tickall-row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer}
+.tickall-row:active{background:var(--card2)}
+.tickall-lbl{font-size:14px;font-weight:700}
+
+/* Overlay / Sheet */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;
+  display:flex;align-items:flex-end;backdrop-filter:blur(4px);
+  transition:opacity .15s;opacity:1}
+.ov.hidden{display:none!important}
+.sh{background:var(--bg2);border-radius:20px 20px 0 0;
+  padding:16px 20px calc(28px + var(--sb));width:100%;max-height:93vh;overflow-y:auto}
+.sh-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 14px}
+.sh-title{font-size:18px;font-weight:700;margin-bottom:18px}
+
+/* Form */
+.fg{margin-bottom:15px}
+.fl{font-size:13px;color:var(--text2);margin-bottom:6px;display:block;font-weight:500}
+.fi,.fs,.fta{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);
+  border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;
+  font-family:var(--sans);outline:none;-webkit-appearance:none;appearance:none}
+.fi:focus,.fs:focus,.fta:focus{border-color:#fff;background:rgba(255,255,255,.2)}
+.fta{min-height:72px;resize:none}
+.fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fhint{font-size:11px;color:var(--text2);margin-top:4px}
+.fdiv{height:1px;background:var(--border);margin:16px 0}
+.fsec{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;border-left:3px solid rgba(255,255,255,.5);padding-left:8px}
+
+/* Day checkboxes in form */
+.day-chk-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.day-chk-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:6px 2px;border-radius:8px;transition:background .1s}
+.day-chk-item:active{background:var(--card2)}
+.day-chk-box{width:22px;height:22px;border-radius:5px;border:2px solid rgba(255,255,255,.4);
+  background:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.day-chk-box.on{background:#fff;border-color:#fff}
+.day-chk-box.on::after{content:'✓';font-size:12px;font-weight:700;color:#0033A0}
+.day-chk-lbl{font-size:10px;font-weight:600;color:var(--text2);text-align:center}
+.day-chk-item:has(.day-chk-box.on) .day-chk-lbl{color:var(--accent)}
+/* Day picker */
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px}
+.day{background:var(--card);border:1.5px solid var(--border);border-radius:8px;
+  padding:8px 2px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;
+  color:var(--text2);transition:all .15s;user-select:none}
+.day.on{background:rgba(78,205,196,.15);border-color:var(--accent);color:var(--accent)}
+
+/* Toggle */
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.tog{position:relative;width:44px;height:26px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-track{position:absolute;inset:0;background:rgba(255,255,255,.25);border-radius:99px;transition:.2s;cursor:pointer}
+.tog input:checked + .tog-track{background:#fff}
+.tog-track:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#0033A0;border-radius:50%;transition:.2s}
+.tog input:checked + .tog-track:before{transform:translateX(18px)}
+
+/* Color swatches */
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.sw.on{border-color:#fff;box-shadow:0 0 0 2px #0033A0}
+
+/* Buttons */
+.btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:16px;
+  font-weight:600;cursor:pointer;font-family:var(--sans)}
+.btn:active{opacity:.8}
+.btn-p{background:#fff;color:#0033A0;border:1px solid #fff;font-weight:700}
+.btn-s{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.btn-d{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
+.brow{display:flex;gap:10px;margin-top:18px}
+.brow .btn{flex:1}
+
+/* Protocol inline table */
+#proto-tbl{width:100%;border-collapse:collapse;min-width:580px}
+#proto-tbl th{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;
+  letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(--border);
+  text-align:center;white-space:nowrap;background:var(--card2);position:sticky;top:0;z-index:2}
+#proto-tbl th.col-name{text-align:left;padding-left:10px}
+#proto-tbl td{padding:0;border-bottom:1px solid rgba(255,255,255,.2);vertical-align:middle;
+  text-align:center;background:#0033A0;color:#fff}
+#proto-tbl tr:last-child td{border-bottom:none}
+#proto-tbl tr:nth-child(even) td{background:#0033A0}
+/* Inline editable cells */
+.ie-name{font-size:13px;font-weight:600;color:#fff;background:transparent;
+  border:none;outline:none;width:100%;padding:10px 6px 10px 10px;font-family:var(--sans);
+  min-width:90px}
+.ie-dose{font-size:13px;color:#fff;background:transparent;border:none;outline:none;
+  width:60px;padding:10px 4px;text-align:center;font-family:var(--mono)}
+.ie-name:focus,.ie-dose:focus{background:rgba(255,255,255,.1);border-radius:4px}
+/* Unit select inline */
+.ie-unit{font-size:11px;background:transparent;border:none;outline:none;color:#BDD4FF;
+  font-family:var(--sans);font-weight:700;padding:10px 2px;cursor:pointer;-webkit-appearance:none;
+  text-align:center;width:52px}
+/* AM/PM select inline */
+.ie-time{font-size:11px;background:transparent;border:none;outline:none;color:#fff;
+  font-family:var(--sans);padding:10px 2px;cursor:pointer;-webkit-appearance:none;
+  text-align:center;width:64px}
+/* Active toggle */
+.act-tog{width:36px;height:20px;border-radius:99px;border:none;cursor:pointer;
+  display:inline-flex;align-items:center;padding:3px;transition:background .15s}
+.act-tog.on{background:#fff}.act-tog.off{background:rgba(255,255,255,.2)}
+.act-knob{width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .15s;pointer-events:none}
+.act-tog.on .act-knob{transform:translateX(16px)}
+/* Day Y cell */
+.day-cell{width:28px;padding:8px 2px}
+.day-y{display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:700;
+  cursor:pointer;border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.3);transition:all .12s;
+  user-select:none}
+.day-y.on{background:#fff;border-color:#fff;color:#0033A0}
+/* Edit btn */
+.col-edit{width:28px}
+.edit-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:8px 6px;font-size:14px}
+.edit-btn:active{color:var(--accent)}
+/* col widths */
+.col-name{min-width:100px;text-align:left!important}
+.col-act{width:48px}.col-dose{width:64px}.col-unit{width:56px}.col-time{width:72px}.col-day{width:28px}.col-dt{width:82px;white-space:nowrap}
+/* Protocol inline table */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;min-width:460px}
+th{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;
+  letter-spacing:.6px;padding:9px 8px;border-bottom:1px solid var(--border);
+  text-align:center;white-space:nowrap;background:var(--card2)}
+th:first-child{text-align:left;padding-left:12px}
+td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:middle;
+  text-align:center;font-size:13px;background:var(--card)}
+td:first-child{padding-left:12px;text-align:left}
+tr:last-child td{border-bottom:none}
+tr{cursor:pointer}
+tr:active td{background:var(--card2)}
+.p-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px}
+.p-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.ddot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);
+  display:inline-block;cursor:pointer;transition:all .12s;background:transparent}
+.ddot.on{background:var(--accent);border-color:var(--accent)}
+.act-pill{display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:20px;border-radius:99px;cursor:pointer;border:none}
+.act-pill.on{background:var(--accent)}.act-pill.off{background:var(--border)}
+.pill-knob{width:14px;height:14px;border-radius:50%;background:#fff;pointer-events:none;transition:transform .15s}
+.act-pill.on .pill-knob{transform:translateX(8px)}
+.act-pill.off .pill-knob{transform:translateX(-8px)}
+.tbadge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.tb-am{background:rgba(255,255,255,.2);color:#fff}
+.tb-pm{background:rgba(255,255,255,.1);color:#BDD4FF}
+.tb-both{background:rgba(255,255,255,.25);color:#fff}
+.tb-any{background:rgba(255,255,255,.08);color:#BDD4FF}
+
+/* Log */
+.li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border)}
+.li-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.li-name{font-size:14px;font-weight:600}
+.li-meta{font-size:12px;color:var(--text2);margin-top:2px}
+.li-time{font-size:11px;color:var(--text2);font-family:var(--mono);flex-shrink:0;margin-top:3px}
+
+/* Inventory */
+.pb{height:4px;background:var(--border);border-radius:99px;margin-top:6px;overflow:hidden}
+.pbf{height:100%;border-radius:99px;background:#fff}
+.pbf.low{background:var(--warn)}.pbf.crit{background:var(--danger)}
+
+/* Sites */
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.site{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:9px 6px;text-align:center;cursor:pointer;font-size:12px;color:var(--text2)}
+.site.on{border-color:var(--accent);color:var(--accent);background:rgba(78,205,196,.1)}
+.site-ic{font-size:18px;display:block;margin-bottom:3px}
+
+/* Streak */
+.streak{display:flex;gap:4px;flex-wrap:wrap}
+.sd{width:12px;height:12px;border-radius:3px;background:var(--border)}
+.sd.on{background:#fff}
+
+/* Misc */
+.empty{text-align:center;padding:44px 20px;color:var(--text2)}
+.empty-ic{font-size:44px;margin-bottom:10px}
+.empty-t{font-size:16px;font-weight:600;color:var(--text);margin-bottom:5px}
+.hidden{display:none!important}
+.pg{display:block}
+::-webkit-scrollbar{width:0}
+::-webkit-scrollbar-track{display:none}
+/* Suppress scroll indicator dots */
+* { -webkit-overflow-scrolling: touch; }
+/* Calculator */
+.calc-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.calc-field-box{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  padding:12px 14px;position:relative}
+.calc-field-letter{position:absolute;top:10px;right:12px;width:22px;height:22px;
+  border-radius:50%;background:#fff;color:#0033A0;font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center}
+.calc-conc-bar{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;
+  font-size:13px;color:rgba(255,255,255,.7);text-align:center;margin-bottom:12px;
+  min-height:40px;display:flex;align-items:center;justify-content:center}
+.calc-card{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  padding:14px;margin-bottom:12px;touch-action:pan-y}
+.calc-section-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.55);
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.calc-result{background:#fff;border-radius:var(--r);padding:20px;text-align:center;
+  margin-bottom:12px;border:2px solid #fff}
+.calc-result-lbl{font-size:11px;font-weight:700;color:#0033A0;text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:6px}
+.calc-result-val{font-size:48px;font-weight:800;color:#0033A0;font-family:var(--mono);line-height:1}
+.calc-result-sub{font-size:14px;color:#0033A0;margin-top:6px;opacity:.7}
+.calc-mode-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.7);border-radius:10px;padding:10px 8px;font-size:13px;
+  font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;
+  text-align:center;line-height:1.5}
+.calc-mode-btn.active{background:#fff;color:#0033A0;border-color:#fff}
+/* Stack Summary */
+.stack-section{margin-bottom:18px}
+.stack-section-hdr{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-left:2px}
+.stack-row{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  padding:12px 14px;margin-bottom:8px}
+.stack-row-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stack-cell{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
+.stack-lbl{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:3px}
+.stack-val{font-size:14px;font-weight:700;color:#fff}
+
+/* Records sub-tabs */
+.rec-tab{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.6);border-radius:10px;padding:9px 4px;font-size:12px;
+  font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;text-align:center}
+.rec-tab.on{background:#fff;color:#0033A0;border-color:#fff}
+.calc-ref-row{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px}
+.calc-ref-row:last-child{border-bottom:none}
+.calc-ref-dose{color:#fff;font-weight:600}
+.calc-ref-vol{color:#BDD4FF;font-family:var(--mono)}
+/* Syringe visualiser */
+.syringe-wrap{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);padding:16px;margin-bottom:12px}
+.syringe-wrap svg{pointer-events:none}
+.syringe-wrap svg *{pointer-events:none}
+.syringe-size-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.syringe-size-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.syringe-size-btn.on{background:#fff;color:#0033A0;border-color:#fff}
+/* Links */
+.link-card{display:flex;align-items:center;gap:14px;background:#0033A0;
+  border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  padding:16px;margin-bottom:12px;cursor:pointer;transition:opacity .15s;touch-action:pan-y}
+.link-card:active{opacity:.8}
+.link-icon{font-size:28px;flex-shrink:0}
+.link-body{flex:1;min-width:0}
+.link-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:3px}
+.link-sub{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:5px;font-family:var(--mono)}
+.link-desc{font-size:12px;color:rgba(255,255,255,.75);line-height:1.4}
+.link-arrow{font-size:24px;color:rgba(255,255,255,.4);flex-shrink:0}
+/* Inventory cards */
+.inv-card{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
+  margin-bottom:12px;overflow:hidden;cursor:pointer;transition:opacity .15s}
+.inv-card:active{opacity:.85}
+.inv-card-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.15)}
+.inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px}
+.inv-f{background:rgba(0,0,0,.2);border-radius:8px;padding:9px 11px}
+.inv-fl{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.inv-fv{font-size:15px;font-weight:700;color:#fff}
+.inv-warn .inv-fv{color:var(--warn)}
+.inv-warn .inv-fl{color:rgba(245,158,11,.7)}
+.inv-inuse-bar{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.12)}
+.inv-inuse-pill{display:inline-flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.15);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
+.inv-inuse-pill.active{background:rgba(34,197,94,.2);color:#4ade80}
+.inv-inuse-pill.none{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
+.inv-none{color:rgba(255,255,255,.35)!important}
+.inv-card.collapsed .inv-card-body{display:none}
+.inv-chevron{font-size:18px;color:rgba(255,255,255,.5);transition:transform .2s;line-height:1}
+.inv-card.collapsed .inv-chevron{transform:rotate(-90deg)}
+.inv-size-row{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.inv-size-row:last-of-type{border-bottom:none}
+.inv-size-lbl{font-size:13px;font-weight:700;color:#fff;margin-bottom:8px}
+.inv-size-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.inv-size-stat{background:rgba(0,0,0,.2);border-radius:6px;padding:6px 8px}
+.inv-size-val{font-size:14px;font-weight:700;color:#fff;margin-top:2px}
+.inv-size-btns{display:flex;gap:6px;flex-wrap:wrap}
+.c-ok{color:#4ade80!important}
+/* Date navigator */
+.date-nav{display:flex;align-items:center;justify-content:space-between;
+  background:#0033A0;border-radius:var(--r);padding:10px 14px;margin-bottom:14px;
+  border:1px solid rgba(255,255,255,.2)}
+.date-nav-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-family:var(--sans);flex-shrink:0}
+.date-nav-btn:active{background:rgba(255,255,255,.3)}
+.date-nav-btn:disabled{opacity:.3;cursor:default}
+.date-nav-center{text-align:center;flex:1}
+.date-nav-label{font-size:15px;font-weight:700;color:#fff}
+.date-nav-sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
+.past-banner{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
+  border-radius:10px;padding:8px 14px;font-size:13px;color:var(--warn);
+  text-align:center;margin-bottom:12px}
+.inv-action-btns{display:flex;gap:6px}
+.inv-action-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.inv-action-btn:active{background:rgba(255,255,255,.25)}
+.inv-action-btn.open{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:#4ade80}
+.inv-action-btn.finish{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:var(--danger)}
+/* History */
+.hist-entry{background:rgba(255,255,255,.1);border-radius:10px;border:1px solid rgba(255,255,255,.2);
+  margin-bottom:10px;overflow:hidden}
+.hist-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;
+  background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
+.hist-date{font-size:12px;font-weight:700;color:#8AAEE0;font-family:var(--mono)}
+.hist-label{font-size:11px;color:var(--text2);margin-left:auto}
+.hist-body{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hist-field{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
+.hist-field-l{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.hist-field-v{font-size:13px;font-weight:600}
+.hist-days{grid-column:1/-1}
+/* Pin badge */
+.pin-badge{font-family:var(--mono);font-weight:700;color:#fff;white-space:nowrap;cursor:pointer}
+/* Expiring cycle (within 7 days of end) */
+.ci.expiring{background:rgba(200,32,32,.92)}
+.ci.expiring .ci-sub{color:rgba(255,255,255,.85)}
+.snooze-btn{width:26px;height:26px;border-radius:50%;flex-shrink:0;padding:0;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#fff;opacity:.5;
+  display:flex;align-items:center;justify-content:center}
+.snooze-btn.on{border-color:var(--warn);color:var(--warn);opacity:1}
+.ci.snoozed{opacity:.55}
+.ci.snoozed .chk{opacity:.35}
+.snz-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
+  background:rgba(245,158,11,.28);color:var(--warn);white-space:nowrap;margin-left:6px}
+.exp-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
+  background:rgba(255,255,255,.28);color:#fff;white-space:nowrap;margin-left:6px}
+.expiry-legend-inner{display:flex;align-items:center;gap:8px;background:rgba(239,68,68,.15);
+  border:1px solid rgba(239,68,68,.35);border-radius:10px;padding:8px 12px;
+  margin-bottom:12px;font-size:12px;color:#FFC4BA}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:2px">
+      <!-- Logo mark -->
+      <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+        <circle cx="21" cy="21" r="21" fill="#0033A0"/>
+        <circle cx="21" cy="21" r="17.5" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <!-- Molecule lines -->
+        <g stroke="rgba(255,255,255,0.3)" stroke-width="0.8" fill="none">
+          <line x1="21" y1="7" x2="31" y2="14"/>
+          <line x1="21" y1="7" x2="11" y2="14"/>
+          <line x1="31" y1="14" x2="33" y2="24"/>
+          <line x1="11" y1="14" x2="9" y2="24"/>
+          <line x1="33" y1="24" x2="27" y2="34"/>
+          <line x1="9" y1="24" x2="15" y2="34"/>
+          <line x1="27" y1="34" x2="15" y2="34"/>
+        </g>
+        <!-- Molecule nodes -->
+        <circle cx="21" cy="7" r="2" fill="white" opacity="0.9"/>
+        <circle cx="31" cy="14" r="1.5" fill="white" opacity="0.7"/>
+        <circle cx="11" cy="14" r="1.5" fill="white" opacity="0.7"/>
+        <circle cx="33" cy="24" r="1.5" fill="white" opacity="0.7"/>
+        <circle cx="9" cy="24" r="1.5" fill="white" opacity="0.7"/>
+        <circle cx="27" cy="34" r="1.5" fill="white" opacity="0.7"/>
+        <circle cx="15" cy="34" r="1.5" fill="white" opacity="0.7"/>
+        <!-- Syringe -->
+        <g transform="translate(21,21) rotate(-35)">
+          <rect x="-3" y="-11" width="6" height="15" rx="1.5" fill="white"/>
+          <rect x="-5" y="-14" width="10" height="4" rx="1.2" fill="white"/>
+          <rect x="-1" y="-11" width="2" height="15" rx="1" fill="#0033A0"/>
+          <rect x="-2.5" y="4" width="5" height="3.5" rx="1" fill="rgba(255,255,255,0.85)"/>
+          <line x1="0" y1="7.5" x2="0" y2="14" stroke="rgba(255,255,255,0.9)" stroke-width="1" stroke-linecap="round"/>
+        </g>
+        <!-- Centre node -->
+        <circle cx="21" cy="21" r="3" fill="white"/>
+        <circle cx="21" cy="21" r="1.8" fill="#0033A0"/>
+      </svg>
+      <!-- Wordmark -->
+      <div>
+        <div style="font-size:20px;font-weight:700;color:#0033A0;letter-spacing:-0.5px;line-height:1.1"><span style="font-weight:700">Peptide</span> <span style="font-weight:300">Tracker</span></div>
+        <div style="font-size:9px;color:#0033A0;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-top:1px">Precision Protocol Tracking</div>
+      </div>
+      <!-- Page title right aligned -->
+      <div style="margin-left:auto;text-align:right;align-self:center">
+        <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
+        <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.0 · 24 Jul 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll" id="scr">
+
+    
+
+    <div id="pg-calc" class="pg hidden">
+
+  <!-- Mode toggle -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+    <button class="calc-mode-btn active" id="cmode-peptide" onclick="setCalcMode('peptide')">
+      💉 Peptide<br><span style="font-size:11px;font-weight:400;opacity:.8">BAC water reconstituted</span>
+    </button>
+    <button class="calc-mode-btn" id="cmode-oil" onclick="setCalcMode('oil')">
+      🧴 Oil-Based / IM<br><span style="font-size:11px;font-weight:400;opacity:.8">Pre-mixed, stackable</span>
+    </button>
+  </div>
+
+  <!-- Load from protocol -->
+  <div class="calc-card">
+    <div class="calc-section-lbl">Load from Protocol (optional)</div>
+    <div style="display:flex;gap:8px">
+      <select class="fs" id="c-compound" onchange="loadFromProtocol()" style="flex:1;margin-bottom:0">
+        <option value="">— Select compound to auto-fill —</option>
+      </select>
+      <button class="btn btn-s btn-sm" onclick="resetCalc()" style="flex-shrink:0;white-space:nowrap">Reset</button>
+    </div>
+  </div>
+
+  <!-- PEPTIDE MODE -->
+  <div id="calc-peptide">
+    <div class="calc-fields-grid">
+      <div class="calc-field-box">
+        <div class="calc-field-letter">A</div>
+        <label class="fl">Vial Amount</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="c-vialAmt" type="number" step="0.1" placeholder="e.g. 5" oninput="calcBoth()">
+          <select class="fs" id="c-vialUnit" style="width:76px" onchange="calcBoth()">
+            <option>mg</option><option>mcg</option><option>IU</option>
+          </select>
+        </div>
+      </div>
+      <div class="calc-field-box">
+        <div class="calc-field-letter">B</div>
+        <label class="fl">BAC Water</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="c-bac" type="number" step="0.1" placeholder="e.g. 2" oninput="calcBoth()">
+          <div class="fi" style="width:52px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">ml</div>
+        </div>
+      </div>
+      <div class="calc-field-box">
+        <div class="calc-field-letter">C</div>
+        <label class="fl">Dose</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="c-dose" type="number" step="0.01" placeholder="e.g. 250" oninput="calcFromDose()">
+          <select class="fs" id="c-doseUnit" style="width:76px" onchange="calcFromDose()">
+            <option>mcg</option><option>mg</option><option>IU</option>
+          </select>
+        </div>
+      </div>
+      <div class="calc-field-box">
+        <div class="calc-field-letter">D</div>
+        <label class="fl">Pin Amount</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="c-vol" type="number" step="0.1" placeholder="e.g. 10" oninput="calcFromVol()">
+          <div class="fi" style="width:60px;text-align:center;padding:12px 6px;opacity:.6;flex-shrink:0">units</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calc-conc-bar" id="c-conc-display"></div>
+
+    <div class="calc-result hidden" id="calc-result">
+      <div class="calc-result-lbl" id="calc-result-lbl">Result</div>
+      <div class="calc-result-val" id="calc-result-val">—</div>
+      <div class="calc-result-sub" id="calc-result-sub"></div>
+    </div>
+
+    <!-- Syringe visual -->
+    <div class="syringe-wrap">
+      <div class="calc-section-lbl">Syringe Visual</div>
+      <div class="syringe-size-row">
+        <button class="syringe-size-btn on" onclick="setSyringeSize(0.3,'insulin',this)">0.3 ml<br><span style="font-size:10px;font-weight:400">30 units</span></button>
+        <button class="syringe-size-btn" onclick="setSyringeSize(0.5,'insulin',this)">0.5 ml<br><span style="font-size:10px;font-weight:400">50 units</span></button>
+        <button class="syringe-size-btn" onclick="setSyringeSize(1.0,'insulin',this)">1.0 ml<br><span style="font-size:10px;font-weight:400">100 units</span></button>
+      </div>
+      <svg id="syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block">
+        <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
+        <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
+        <rect id="syr-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
+        <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+        <clipPath id="barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
+        <rect id="syr-fluid" x="124" y="426" width="72" height="0" fill="rgba(78,205,196,0.7)" clip-path="url(#barrel-clip)"/>
+        <rect id="syr-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
+        <g id="syr-ticks"></g>
+        <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
+        <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
+        <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
+        <text id="syr-units-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— units</text>
+        <text id="syr-ml-label" x="280" y="458" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.45)" text-anchor="middle">— ml</text>
+      </svg>
+    </div>
+
+    <div class="calc-card">
+      <div class="calc-section-lbl">Syringe Reference Chart</div>
+      <div id="calc-quick-ref"><span style="color:rgba(255,255,255,.5)">Enter A and B to see the chart.</span></div>
+    </div>
+
+    <div class="calc-card">
+      <div class="calc-section-lbl">Saved Doses</div>
+      <select class="fs" id="pep-saved-select" onchange="loadSavedDose()" style="margin-bottom:10px">
+        <option value="">— Load a saved dose —</option>
+      </select>
+      <button class="btn btn-s btn-sm" onclick="saveDose()" style="width:100%">💾 Save This Dose</button>
+    </div>
+  </div>
+
+  <!-- OIL MODE -->
+  <div id="calc-oil" style="display:none">
+    <div class="calc-card">
+      <div class="calc-section-lbl">Compounds in this injection</div>
+      <div id="oil-compounds-list"></div>
+      <button class="btn btn-s btn-sm" onclick="addOilCompound()" style="width:100%;margin-top:10px">+ Add Compound</button>
+    </div>
+
+    <div class="calc-card" id="oil-result-card" style="display:none">
+      <div class="calc-section-lbl">Draw Volumes</div>
+      <div id="oil-draw-volumes"></div>
+      <div style="border-top:1px solid rgba(255,255,255,.2);margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:rgba(255,255,255,.7)">Total volume</span>
+        <span style="font-size:20px;font-weight:800;color:#fff;font-family:var(--mono)" id="oil-total-vol">0.00 ml</span>
+      </div>
+    </div>
+
+    <div class="syringe-wrap" id="oil-syringe-card" style="display:none">
+      <div class="calc-section-lbl">Syringe Visual (IM)</div>
+      <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px">💉 Insulin</div>
+      <div class="syringe-size-row">
+        <button class="syringe-size-btn" onclick="setOilSyrSize(0.3,'insulin',this)">0.3 ml</button>
+        <button class="syringe-size-btn" onclick="setOilSyrSize(0.5,'insulin',this)">0.5 ml</button>
+        <button class="syringe-size-btn" onclick="setOilSyrSize(1.0,'insulin',this)">1.0 ml</button>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px">🩸 IM Needle</div>
+      <div class="syringe-size-row">
+        <button class="syringe-size-btn on" onclick="setOilSyrSize(1,'im',this)">1 ml</button>
+        <button class="syringe-size-btn" onclick="setOilSyrSize(2,'im',this)">2 ml</button>
+        <button class="syringe-size-btn" onclick="setOilSyrSize(3,'im',this)">3 ml</button>
+      </div>
+      <svg id="oil-syringe-svg" viewBox="0 0 320 520" width="100%" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;display:block">
+        <rect x="130" y="10" width="60" height="16" rx="4" fill="rgba(255,255,255,0.9)"/>
+        <rect x="148" y="26" width="24" height="12" rx="2" fill="rgba(255,255,255,0.7)"/>
+        <rect id="oil-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="rgba(255,255,255,0.5)"/>
+        <rect x="122" y="48" width="76" height="380" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+        <clipPath id="oil-barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
+        <g id="oil-fluid-stack"></g>
+        <rect id="oil-disc" x="124" y="416" width="72" height="12" rx="3" fill="rgba(255,255,255,0.85)"/>
+        <g id="oil-ticks"></g>
+        <rect x="138" y="428" width="44" height="18" rx="4" fill="rgba(255,255,255,0.7)"/>
+        <rect x="155" y="446" width="10" height="60" rx="2" fill="rgba(255,255,255,0.8)"/>
+        <polygon points="155,506 165,506 160,520" fill="rgba(255,255,255,0.8)"/>
+        <text id="oil-vol-label" x="280" y="440" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" text-anchor="middle">— ml</text>
+      </svg>
+    </div>
+
+    <div class="calc-card">
+      <div class="calc-section-lbl">Saved Stacks</div>
+      <select class="fs" id="oil-saved-select" onchange="loadSavedStack()" style="margin-bottom:10px">
+        <option value="">— Load a saved stack —</option>
+      </select>
+      <button class="btn btn-s btn-sm" onclick="saveStack()" style="width:100%">💾 Save Current Stack</button>
+    </div>
+  </div>
+
+</div>
+
+    
+
+    <div id="pg-today" class="pg hidden">
+      <!-- Date Navigator -->
+      <div class="date-nav">
+        <button class="date-nav-btn" onclick="changeDay(-1)" title="Previous day">‹</button>
+        <div class="date-nav-center">
+          <div class="date-nav-label" id="nav-date-label">Today</div>
+          <div class="date-nav-sub" id="nav-date-sub"></div>
+        </div>
+        <button class="date-nav-btn" onclick="changeDay(1)" id="nav-next-btn" title="Next day">›</button>
+      </div>
+      <div id="expiry-legend"></div>
+      <div class="past-banner hidden" id="past-banner">📅 Viewing a past day — tap to mark doses taken</div>
+      <div class="stats">
+        <div class="stat"><div class="stat-n c-ok" id="s-done">0</div><div class="stat-l">Done</div></div>
+        <div class="stat"><div class="stat-n c-warn" id="s-due">0</div><div class="stat-l">Remaining</div></div>
+        <div class="stat"><div class="stat-n c-accent" id="s-streak">0</div><div class="stat-l">Streak</div></div>
+      </div>
+      <div class="ampm" id="ampm"></div>
+      <div class="tickall hidden" id="tickall">
+        <div class="tickall-row" onclick="tickAll()">
+          <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="tickall-lbl">Tick All Done</span>
+          <span id="tick-cnt" style="font-size:12px;color:var(--text2);margin-left:auto;font-family:var(--mono)"></span>
+        </div>
+      </div>
+      <button class="btn btn-s" onclick="openAdd()">+ Add Compound</button>
+      <button class="btn btn-p" onclick="manualSave()" id="save-btn" style="margin-top:10px">
+        Save &amp; Update
+      </button>
+      <div id="save-confirm" style="text-align:center;font-size:12px;color:var(--success);margin-top:6px;display:none">✓ Saved successfully</div>
+
+      <!-- Data backup -->
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-s" onclick="exportData()" style="flex:1;font-size:13px">⬇ Save Backup</button>
+        <button class="btn btn-s" onclick="document.getElementById('import-file').click()" style="flex:1;font-size:13px">⬆ Restore Backup</button>
+        <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importFromFile(this)">
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.4);text-align:center;margin-top:6px">Save backup to Files before every update</div>
+      <div id="storage-usage"></div>
+
+    </div>
+
+    <div id="pg-proto" class="pg hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="sec" style="margin:0">Protocol</div>
+        <button class="btn btn-s btn-sm" onclick="openAdd()">+ Add Compound</button>
+      </div>
+      <!-- Horizontally scrollable inline-edit table -->
+      <div class="tbl-wrap">
+        <table id="proto-tbl">
+          <thead>
+            <tr>
+              <th class="col-name">Peptide</th>
+              <th class="col-act">Active</th>
+              <th class="col-dose">Dosage</th>
+              <th class="col-unit">Unit</th>
+              <th class="col-time">AM/PM/Both</th>
+              <th class="col-day">M</th>
+              <th class="col-day">T</th>
+              <th class="col-day">W</th>
+              <th class="col-day">T</th>
+              <th class="col-day">F</th>
+              <th class="col-day">S</th>
+              <th class="col-day">S</th>
+              <th class="col-dt">Start Date</th>
+              <th class="col-dt">End Date</th>
+              <th class="col-dt">Duration</th>
+              <th class="col-edit"></th>
+            </tr>
+          </thead>
+          <tbody id="proto-body"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)">
+        <button class="btn btn-d" onclick="masterReset()" style="font-size:14px">⚠️ Master Reset — Clear All Data</button>
+      </div>
+    
+      <!-- Useful Links -->
+      <div class="sec">Useful Links</div>
+      <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
+        <div class="link-icon">💊</div>
+        <div class="link-body">
+          <div class="link-title">Peptide Dosage Protocols</div>
+          <div class="link-url">peptidedosages.com</div>
+          <div class="link-desc">Single peptide dosage protocols — Selank, BPC-157, and more</div>
+        </div>
+        <div class="link-arrow">›</div>
+      </div>
+      <div class="link-card" onclick="openLink('https://particlepeptides.com/pages/peptide-calculator')">
+        <div class="link-icon">🧮</div>
+        <div class="link-body">
+          <div class="link-title">Peptide Calculator</div>
+          <div class="link-url">particlepeptides.com</div>
+          <div class="link-desc">Reconstitution calculator for peptide dosing</div>
+        </div>
+        <div class="link-arrow">›</div>
+      </div>
+    </div>
+
+    <div id="pg-inv" class="pg hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="sec" style="margin:0">Vials &amp; Stock</div>
+        <button class="btn btn-s btn-sm" onclick="openAddInv()">+ Add Vial</button>
+      </div>
+      <div id="inv-list"></div>
+    </div>
+
+    <div id="pg-records" class="pg hidden">
+      <!-- Sub-tab selector -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">
+        <button class="rec-tab on" id="rectab-stats" onclick="setRecTab('stats')">📊 Stats</button>
+        <button class="rec-tab" id="rectab-hist" onclick="setRecTab('hist')">🕐 History</button>
+        <button class="rec-tab" id="rectab-log" onclick="setRecTab('log')">📋 Log</button>
+      </div>
+
+      <!-- Stats sub-page -->
+      <div id="rec-stats">
+        <div class="sec">Adherence — Last 30 Days</div>
+        <div class="card"><div class="streak" id="streak"></div></div>
+        <div class="sec">By Compound</div>
+        <div id="stats-list"></div>
+      </div>
+
+      <!-- History sub-page -->
+      <div id="rec-hist" class="hidden">
+        <!-- View mode toggle -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <button class="rec-tab on" id="histmode-compound" onclick="setHistMode('compound')">💊 By Compound</button>
+          <button class="rec-tab" id="histmode-date" onclick="setHistMode('date')">📅 By Date</button>
+        </div>
+
+        <!-- By Compound view -->
+        <div id="hist-compound-view">
+          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+            <select class="fs" id="hist-filter" onchange="rHist()" style="flex:1;margin-bottom:0">
+              <option value="">— Select compound —</option>
+            </select>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Protocol changes saved automatically on each update.</p>
+          <div id="hist-list"></div>
+        </div>
+
+        <!-- By Date view -->
+        <div id="hist-date-view" style="display:none">
+          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+            <select class="fs" id="hist-month-filter" onchange="rHistByDate()" style="flex:1;margin-bottom:0">
+              <option value="">— Select month/year —</option>
+            </select>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Shows your full protocol as it was during that period.</p>
+          <div id="hist-date-list"></div>
+        </div>
+      </div>
+
+      <!-- Log sub-page -->
+      <div id="rec-log" class="hidden">
+        <div class="sec">Dose History</div>
+        <div id="log-list"></div>
+      </div>
+    </div>
+
+    <div id="pg-stack" class="pg hidden">
+      <div id="stack-content"></div>
+
+      <div style="background:#0033A0;border:1px solid rgba(255,255,255,.2);border-radius:var(--r);padding:14px;margin-top:4px">
+        <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:12px;line-height:1.5">Copy your stack as an AI-ready prompt and paste into ChatGPT, Claude, Gemini or any AI assistant for a detailed analysis.</div>
+        <button class="btn btn-p" onclick="copyStackPrompt()" id="copy-stack-btn" style="font-size:14px">Copy Stack for AI Analysis</button>
+        <div id="copy-stack-confirm" style="font-size:12px;color:var(--success);margin-top:8px;display:none;text-align:center">✓ Prompt copied — paste into your AI of choice</div>
+      </div>
+    </div>
+
+  </div>
+
+    
+
+  <button class="fab" id="fab" onclick="fabAction()">
+    <div class="pulse"></div>
+    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+  </button>
+
+  <div class="tabs">
+    <button class="tb on" onclick="nav('today',this)">
+      <svg fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>
+      Today
+    </button>
+    <button class="tb" onclick="nav('proto',this)">
+      <svg fill="none" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Protocol
+    </button>
+    <button class="tb" onclick="nav('inv',this)">
+      <svg fill="none" viewBox="0 0 24 24"><path d="M20 7H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1zM16 3H8l-1 4h10l-1-4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Inventory
+    </button>
+    <button class="tb" onclick="nav('calc',this)">
+      <svg fill="none" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 7h8M8 12h2M12 12h2M16 12h0M8 16h2M12 16h2M16 16h0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Calc
+    </button>
+    <button class="tb" onclick="nav('stack',this)">
+      <svg fill="none" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Stack
+    </button>
+    <button class="tb" onclick="nav('records',this)">
+      <svg fill="none" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Records
+    </button>
+  </div>
+</div>
+
+<!-- ═══ COMPOUND FORM SHEET ═══ -->
+<div class="ov hidden" id="ov-form">
+  <div class="sh">
+    <div class="sh-handle"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+      <div class="sh-title" style="margin:0;flex:1" id="form-title">Compound</div>
+      <div id="form-dot" style="width:14px;height:14px;border-radius:50%;flex-shrink:0"></div>
+    </div>
+
+    <!-- NAME (only shown when adding new) -->
+    <div class="fg" id="form-name-wrap">
+      <label class="fl">Name</label>
+      <input class="fi" id="f-name" placeholder="e.g. BPC-157" oninput="checkNameHistory()">
+      <div id="f-name-history"></div>
+    </div>
+
+    <div class="fdiv"></div>
+    <div class="fsec">① Dosage</div>
+    <div class="fr fg">
+      <div><label class="fl">Amount</label><input class="fi" id="f-dose" type="number" step="0.01" placeholder="0.00"></div>
+      <div><label class="fl">Unit</label>
+        <select class="fs" id="f-unit">
+          <option>mg</option><option>mcg</option><option>IU</option><option>ml</option><option>units</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Route of Administration</label>
+      <select class="fs" id="f-route">
+        <option>SubQ Injection</option><option>IM Injection</option><option>Oral</option>
+        <option>Nasal Spray</option><option>Topical</option><option>IV</option>
+      </select>
+    </div>
+    <div class="fr fg">
+      <div><label class="fl">Vial Size</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="f-vialSize" type="number" step="0.1" placeholder="e.g. 5">
+          <select class="fs" id="f-vialUnit" style="width:76px">
+            <option>mg</option><option>mcg</option><option>IU</option>
+          </select>
+        </div>
+      </div>
+      <div><label class="fl">BAC Water (ml)</label>
+        <input class="fi" id="f-bac" type="number" step="0.1" placeholder="e.g. 2">
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Dosing Notes</label>
+      <textarea class="fta" id="f-doseNotes" placeholder="e.g. Start 0.25mg, increase 0.25mg/week to target"></textarea>
+    </div>
+
+    <div class="fdiv"></div>
+    <div class="fsec">② Frequency &amp; Timing</div>
+    <div class="fg"><label class="fl">Frequency</label>
+      <select class="fs" id="f-freq" onchange="onFreq()">
+        <option value="daily">Daily</option>
+        <option value="bid">Twice Daily (BID)</option>
+        <option value="eod">Every Other Day</option>
+        <option value="e3d">Every 3 Days</option>
+        <option value="2xweek">2x per Week</option>
+        <option value="3xweek">3x per Week</option>
+        <option value="4xweek">4x per Week</option>
+        <option value="5xweek">5x per Week</option>
+        <option value="weekly">Once per Week</option>
+        <option value="biweekly">Every 2 Weeks</option>
+        <option value="monthly">Monthly</option>
+        <option value="prn">As Needed (PRN)</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Days of Week</label>
+      <div class="day-chk-row" id="f-days">
+        <div class="day-chk-item" onclick="togDayChk(this,1)">
+          <div class="day-chk-box" data-d="1"></div><span class="day-chk-lbl">Mon</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,2)">
+          <div class="day-chk-box" data-d="2"></div><span class="day-chk-lbl">Tue</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,3)">
+          <div class="day-chk-box" data-d="3"></div><span class="day-chk-lbl">Wed</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,4)">
+          <div class="day-chk-box" data-d="4"></div><span class="day-chk-lbl">Thu</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,5)">
+          <div class="day-chk-box" data-d="5"></div><span class="day-chk-lbl">Fri</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,6)">
+          <div class="day-chk-box" data-d="6"></div><span class="day-chk-lbl">Sat</span>
+        </div>
+        <div class="day-chk-item" onclick="togDayChk(this,0)">
+          <div class="day-chk-box" data-d="0"></div><span class="day-chk-lbl">Sun</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button type="button" class="btn btn-s btn-sm" onclick="selectAllDays()" style="font-size:12px;padding:6px 12px">All</button>
+        <button type="button" class="btn btn-s btn-sm" onclick="clearAllDays()" style="font-size:12px;padding:6px 12px">None</button>
+        <button type="button" class="btn btn-s btn-sm" onclick="selectWeekdays()" style="font-size:12px;padding:6px 12px">Weekdays</button>
+      </div>
+    </div>
+    <div class="fr fg">
+      <div><label class="fl">Time of Day</label>
+        <select class="fs" id="f-time">
+          <option value="AM">Morning (AM)</option>
+          <option value="PM">Evening (PM)</option>
+          <option value="Both">AM &amp; PM (Both)</option>
+          <option value="PreWO">Pre-Workout</option>
+          <option value="PostWO">Post-Workout</option>
+          <option value="Fasted">Fasted</option>
+          <option value="BedTime">Bed Time</option>
+          <option value="WithMeal">With Meal</option>
+          <option value="Any">Any Time</option>
+        </select>
+      </div>
+      <div><label class="fl">Clock Time</label>
+        <input class="fi" id="f-clock" type="time">
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Timing Notes</label>
+      <input class="fi" id="f-timingNotes" placeholder="e.g. 30 min fasted, away from thyroid meds">
+    </div>
+
+    <div class="fdiv"></div>
+    <div class="fsec">③ Duration &amp; Cycle</div>
+    <div class="fr fg">
+      <div><label class="fl">Start Date</label><input class="fi" id="f-start" type="date" onchange="updateEndPreview()"></div>
+      <div><label class="fl">Duration</label>
+        <select class="fs" id="f-durtype" onchange="onDur()">
+          <option value="ongoing">Ongoing</option>
+          <option value="weeks">Fixed (weeks)</option>
+          <option value="enddate">Fixed (end date)</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg hidden" id="f-weeks-wrap"><label class="fl">Number of Weeks</label>
+      <input class="fi" id="f-weeks" type="number" min="1" placeholder="e.g. 4" oninput="updateEndPreview()">
+      <div class="fhint" id="f-end-preview"></div>
+    </div>
+    <div class="fg hidden" id="f-end-wrap"><label class="fl">End Date</label>
+      <input class="fi" id="f-end" type="date">
+    </div>
+    <div class="fg"><label class="fl">Cycle Pattern</label>
+      <input class="fi" id="f-cycle" placeholder="e.g. 12 weeks on, 4 weeks off">
+    </div>
+    <div class="fg"><label class="fl">Off-Cycle / PCT Notes</label>
+      <input class="fi" id="f-pct" placeholder="e.g. HCG 500 IU EOD x 3 weeks">
+    </div>
+
+    <div class="fdiv"></div>
+    <div class="fsec">④ General</div>
+    <div class="fg"><label class="fl">Category</label>
+      <select class="fs" id="f-cat">
+        <option>Peptide</option><option>Growth Hormone</option><option>Hormone</option>
+        <option>Supplement</option><option>Vitamin</option><option>Nootropic</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Color Tag</label>
+      <div class="swatches" id="f-colors"></div>
+    </div>
+    <div class="fg"><label class="fl">General Notes</label>
+      <textarea class="fta" id="f-notes" placeholder="Interactions, storage, reconstitution..."></textarea>
+    </div>
+    <div class="tog-row">
+      <span style="font-size:15px">Active in Protocol</span>
+      <label class="tog"><input type="checkbox" id="f-active" checked><div class="tog-track"></div></label>
+    </div>
+    <input type="hidden" id="f-id">
+
+    <div class="brow">
+      <button class="btn btn-s" onclick="closeOv('ov-form')">Cancel</button>
+      <button class="btn btn-p" onclick="saveForm()">Save</button>
+    </div>
+    <div style="margin-top:10px" id="f-del-wrap" class="hidden">
+      <button class="btn btn-d" onclick="delCompound()">Delete Compound</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SNOOZE SHEET ═══ -->
+<div class="ov hidden" id="ov-snooze">
+  <div class="sh">
+    <div class="sh-handle"></div>
+    <div class="sh-title" id="snz-title">Snooze</div>
+    <p style="font-size:13px;color:var(--text2);margin:-10px 0 16px;line-height:1.5">
+      Pauses this dose without changing your protocol. It stays listed on Today and comes back automatically.
+    </p>
+    <div id="snz-current" class="hidden" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);
+      border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:var(--warn)"></div>
+    <div class="fg">
+      <label class="fl">Snooze for</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="applySnooze(1)">Today only</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="applySnooze(3)">3 days</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="applySnooze(7)">1 week</button>
+        <button class="btn btn-s btn-sm" style="width:100%" onclick="applySnooze(14)">2 weeks</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Or until a specific date</label>
+      <div style="display:flex;gap:8px">
+        <input class="fi" id="snz-until" type="date" style="flex:1">
+        <button class="btn btn-p btn-sm" style="flex-shrink:0" onclick="applySnoozeUntil()">Apply</button>
+      </div>
+    </div>
+    <div id="snz-unwrap" class="fg hidden">
+      <button class="btn btn-s" onclick="clearSnooze()">Resume now — cancel this snooze</button>
+    </div>
+    <div class="brow">
+      <button class="btn btn-s" onclick="closeOv('ov-snooze')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOG DOSE SHEET ═══ -->
+<div class="ov hidden" id="ov-log">
+  <div class="sh">
+    <div class="sh-handle"></div>
+    <div class="sh-title">Log a Dose</div>
+    <div class="fg"><label class="fl">Compound</label>
+      <select class="fs" id="l-pid" onchange="prefillLog()"></select>
+    </div>
+    <div class="fr fg">
+      <div><label class="fl">Dose</label><input class="fi" id="l-dose" type="number" step="0.01"></div>
+      <div><label class="fl">Unit</label>
+        <select class="fs" id="l-unit"><option>mg</option><option>mcg</option><option>IU</option><option>ml</option><option>units</option></select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Administration Site</label>
+      <div class="sg" id="l-sites">
+        <div class="site" onclick="selSite(this,'Abdomen L')"><span class="site-ic">🟤</span>Abd L</div>
+        <div class="site" onclick="selSite(this,'Abdomen R')"><span class="site-ic">🟤</span>Abd R</div>
+        <div class="site" onclick="selSite(this,'Thigh L')"><span class="site-ic">🦵</span>Thigh L</div>
+        <div class="site" onclick="selSite(this,'Thigh R')"><span class="site-ic">🦵</span>Thigh R</div>
+        <div class="site" onclick="selSite(this,'Glute L')"><span class="site-ic">💉</span>Glute L</div>
+        <div class="site" onclick="selSite(this,'Glute R')"><span class="site-ic">💉</span>Glute R</div>
+        <div class="site" onclick="selSite(this,'Delt L')"><span class="site-ic">💪</span>Delt L</div>
+        <div class="site" onclick="selSite(this,'Delt R')"><span class="site-ic">💪</span>Delt R</div>
+        <div class="site" onclick="selSite(this,'SubQ')"><span class="site-ic">📍</span>SubQ</div>
+        <div class="site" onclick="selSite(this,'Oral')"><span class="site-ic">💊</span>Oral</div>
+        <div class="site" onclick="selSite(this,'Nasal')"><span class="site-ic">👃</span>Nasal</div>
+        <div class="site" onclick="selSite(this,'Topical')"><span class="site-ic">🖐</span>Topical</div>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Date &amp; Time</label><input class="fi" id="l-time" type="datetime-local"></div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="l-notes" placeholder="How you felt, observations..."></textarea></div>
+    <div class="brow">
+      <button class="btn btn-s" onclick="closeOv('ov-log')">Cancel</button>
+      <button class="btn btn-p" onclick="saveLog()">Log Dose</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INVENTORY SHEET ═══ -->
+<div class="ov hidden" id="ov-inv">
+  <div class="sh">
+    <div class="sh-handle"></div>
+    <div class="sh-title" id="inv-title">Add Stock</div>
+    <div class="fg"><label class="fl">Compound</label><select class="fs" id="iv-pid"></select></div>
+    <div class="fg"><label class="fl">Vial Size Label <span style="color:var(--text2);font-weight:400">(e.g. 5000 IU, 10mg)</span></label>
+      <input class="fi" id="iv-label" placeholder="e.g. 5000 IU — leave blank if only one size">
+    </div>
+    <div class="fr fg">
+      <div><label class="fl">No. of Vials</label><input class="fi" id="iv-vials" type="number" min="0" placeholder="e.g. 8"></div>
+      <div><label class="fl">Qty per Vial</label><input class="fi" id="iv-qty" type="number" step="0.1" placeholder="e.g. 5000"></div>
+    </div>
+    <div class="fr fg">
+      <div><label class="fl">Unit</label>
+        <select class="fs" id="iv-unit"><option>mg</option><option>mcg</option><option>IU</option><option>ml</option></select>
+      </div>
+      <div><label class="fl">Purchase Date</label><input class="fi" id="iv-purchased" type="date"></div>
+    </div>
+    <div class="fr fg">
+      <div><label class="fl">BAC Water Added (ml)</label>
+        <input class="fi" id="iv-bac" type="number" step="0.1" placeholder="e.g. 2.0">
+      </div>
+      <div><label class="fl">Expiry Date</label>
+        <input class="fi" id="iv-exp" type="date">
+      </div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-s" onclick="closeOv('ov-inv')">Cancel</button>
+      <button class="btn btn-p" onclick="saveInv()">Save</button>
+    </div>
+    <div style="margin-top:10px" id="iv-del-wrap" class="hidden">
+      <button class="btn btn-d" onclick="delInv()">Remove Entry</button>
+    </div>
+    <input type="hidden" id="iv-id">
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// v2.0 INFRASTRUCTURE
+// ═══════════════════════════════════════════════════════════
+const APP_VERSION = '2.0';
+const CURRENT_SCHEMA = 2;
+
+function esc(v){
+  if(v===undefined||v===null) return '';
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function localDateStr(d){
+  d = d ? new Date(d) : new Date();
+  if(isNaN(d)) return '';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function localDateTimeStr(d){
+  d = d ? new Date(d) : new Date();
+  if(isNaN(d)) return '';
+  return localDateStr(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function utcStamp(){ return new Date().toISOString(); }
+
+function safeGet(key){ try{ return localStorage.getItem(key); }catch(e){ console.warn('safeGet',key,e); return null; } }
+function safeSet(key,value){
+  try{ localStorage.setItem(key,value); return {ok:true}; }
+  catch(e){
+    let reason='unknown';
+    if(e&&(e.name==='QuotaExceededError'||e.code===22||e.code===1014)) reason='quota';
+    else if(e&&e.name) reason=e.name;
+    console.error('safeSet',key,reason,e); return {ok:false,reason:reason,error:e};
+  }
+}
+function safeRemove(key){ try{ localStorage.removeItem(key); }catch(e){} }
+function safeParse(str,fallback){
+  if(str===null||str===undefined) return fallback;
+  try{ const v=JSON.parse(str); return (v===null||v===undefined)?fallback:v; }catch(e){ return fallback; }
+}
+
+function numState(v){
+  if(v===''||v===null||v===undefined) return 'missing';
+  const n=Number(v);
+  if(Number.isNaN(n)) return 'nan';
+  if(!Number.isFinite(n)) return 'infinite';
+  if(n<0) return 'negative';
+  return 'valid';
+}
+function isPosFinite(v){ const n=Number(v); return Number.isFinite(n)&&n>0; }
+
+function reconstitutionCalc(inp){
+  const {vialAmt,vialUnit,bac,dose,doseUnit} = inp;
+  if(!isPosFinite(vialAmt)) return {ok:false,error:'Enter a valid vial amount.'};
+  if(!isPosFinite(bac))     return {ok:false,error:'Enter a valid BAC water volume.'};
+  if(!isPosFinite(dose))    return {ok:false,error:'Enter a valid dose.'};
+  const mass=['mg','mcg'];
+  const vf = mass.includes(vialUnit)?'mass':(vialUnit==='IU'?'iu':'?');
+  const df = mass.includes(doseUnit)?'mass':(doseUnit==='IU'?'iu':'?');
+  if(vf==='?'||df==='?') return {ok:false,error:'Unknown unit.'};
+  if(vf!==df) return {ok:false,error:'Vial and dose are different unit families (mass vs IU). IU to mass conversion is not supported.'};
+  const toBase=(a,u)=> u==='mg'?a*1000:a;
+  const concPerMl=toBase(vialAmt,vialUnit)/bac;
+  if(!Number.isFinite(concPerMl)||concPerMl<=0) return {ok:false,error:'Invalid concentration.'};
+  const ml=toBase(dose,doseUnit)/concPerMl;
+  if(!Number.isFinite(ml)||ml<=0) return {ok:false,error:'Invalid result.'};
+  return {ok:true, ml:ml, units:ml*100, concPerMl:concPerMl, family:vf};
+}
+function oilCalc(inp){
+  const {conc,concUnit,dose,doseUnit} = inp;
+  if(!isPosFinite(conc)) return {ok:false,error:'Enter a valid concentration.'};
+  if(!isPosFinite(dose)) return {ok:false,error:'Enter a valid dose.'};
+  if(!['mg','mcg'].includes(concUnit)||!['mg','mcg'].includes(doseUnit))
+    return {ok:false,error:'Oil calculations use mass units (mg or mcg).'};
+  const toMcg=(a,u)=> u==='mg'?a*1000:a;
+  const ml=toMcg(dose,doseUnit)/toMcg(conc,concUnit);
+  if(!Number.isFinite(ml)||ml<=0) return {ok:false,error:'Invalid result.'};
+  return {ok:true, ml:ml, units:ml*100};
+}
+
+// Custom dialogs — promise-based, reuse overlay CSS, safe when hidden.
+function ptDialog(opts){
+  return new Promise(resolve=>{
+    const kind=opts.kind||'alert';
+    const ov=document.createElement('div');
+    ov.className='ov'; ov.style.zIndex='1000';
+    let inputHtml='';
+    if(kind==='prompt'){
+      const it=opts.inputType==='number'?'number':'text';
+      inputHtml='<input class="fi" id="ptd-input" type="'+it+'" '+(opts.step?('step="'+opts.step+'" '):'')+
+        'placeholder="'+esc(opts.placeholder||'')+'" value="'+esc(opts.value||'')+'" style="margin-bottom:4px">';
+    }
+    const cancelBtn=(kind==='confirm'||kind==='prompt')
+      ? '<button class="btn btn-s" id="ptd-cancel">'+esc(opts.cancelText||'Cancel')+'</button>' : '';
+    const okClass=opts.destructive?'btn-d':'btn-p';
+    ov.innerHTML='<div class="sh" style="padding-bottom:28px"><div class="sh-handle"></div>'+
+      (opts.title?'<div class="sh-title">'+esc(opts.title)+'</div>':'')+
+      (opts.message?'<p style="font-size:14px;color:var(--text2);line-height:1.5;margin-bottom:16px;white-space:pre-line">'+esc(opts.message)+'</p>':'')+
+      inputHtml+'<div class="brow">'+cancelBtn+
+      '<button class="btn '+okClass+'" id="ptd-ok">'+esc(opts.okText||'OK')+'</button></div></div>';
+    document.body.appendChild(ov);
+    let done=false;
+    const finish=(val)=>{ if(done) return; done=true; ov.remove(); resolve(val); };
+    ov.querySelector('#ptd-ok').addEventListener('click',()=>{
+      const inp=ov.querySelector('#ptd-input');
+      if(kind==='prompt') finish(inp?inp.value:''); else if(kind==='confirm') finish(true); else finish(true);
+    });
+    const cB=ov.querySelector('#ptd-cancel');
+    if(cB) cB.addEventListener('click',()=> finish(kind==='prompt'?null:false));
+    ov.addEventListener('click',ev=>{ if(ev.target===ov) finish(kind==='prompt'?null:(kind==='confirm'?false:true)); });
+    const inp=ov.querySelector('#ptd-input');
+    if(inp) setTimeout(()=>{ try{ inp.focus(); }catch(e){} },50);
+  });
+}
+function ptAlert(message,title){ return ptDialog({kind:'alert',message,title}); }
+function ptConfirm(message,title,opts){ return ptDialog(Object.assign({kind:'confirm',message,title},opts||{})); }
+function ptPrompt(message,opts){ return ptDialog(Object.assign({kind:'prompt',message},opts||{})); }
+
+// ─── CONSTANTS ───────────────────────────────────────────────
+const COLORS=['#4ECDC4','#F59E0B','#EF4444','#A78BFA','#34D399','#60A5FA','#F472B6','#FB923C','#818CF8','#2DD4BF','#FDE047','#94A3B8'];
+const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const FL={daily:'Daily',bid:'Twice Daily',eod:'Every Other Day',e3d:'Every 3 Days',
+  '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
+  weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
+
+// ─── DEFAULT COMPOUNDS ───────────────────────────────────────
+const DEFAULTS=[
+  {id:'p1', name:'BPC-157',              cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',freq:'daily',   days:[],         time:'Both',clock:'',timingNotes:'',doseNotes:'',start:'2026-06-23',durtype:'weeks',  weeks:'4',end:'',          cycle:'',       pct:'',notes:'',color:'#34D399',active:true},
+  {id:'p2', name:'Retatutride',          cat:'Peptide',       dose:500,  unit:'mcg',route:'SubQ Injection',freq:'3xweek',  days:[2,4,6],    time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'2026-05-18',durtype:'enddate',weeks:'', end:'2026-06-02',cycle:'',       pct:'',notes:'',color:'#4ECDC4',active:true},
+  {id:'p3', name:'TB-500',               cat:'Peptide',       dose:700,  unit:'mcg',route:'SubQ Injection',freq:'daily',   days:[],         time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'2026-06-23',durtype:'weeks',  weeks:'4',end:'',          cycle:'',       pct:'',notes:'',color:'#A78BFA',active:true},
+  {id:'p4', name:'NAD+',                 cat:'Supplement',    dose:0,    unit:'mg', route:'Oral',           freq:'3xweek',  days:[1,3,5],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#FDE047',active:false},
+  {id:'p5', name:'MOTSc',                cat:'Peptide',       dose:5,    unit:'mg', route:'SubQ Injection', freq:'3xweek',  days:[1,3,5],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#FB923C',active:false},
+  {id:'p6', name:'Selank',               cat:'Nootropic',     dose:200,  unit:'mcg',route:'Nasal Spray',   freq:'5xweek',  days:[1,2,3,4,5],time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#60A5FA',active:false},
+  {id:'p7', name:'GHK-Cu',               cat:'Peptide',       dose:2,    unit:'mg', route:'SubQ Injection', freq:'5xweek',  days:[1,2,3,4,5],time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'enddate', weeks:'',end:'2026-07-02',cycle:'',       pct:'',notes:'',color:'#F59E0B',active:true},
+  {id:'p8', name:'Glutathione',          cat:'Supplement',    dose:200,  unit:'mg', route:'Oral',           freq:'3xweek',  days:[1,3,6],    time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#2DD4BF',active:false},
+  {id:'p9', name:'KPV',                  cat:'Peptide',       dose:500,  unit:'mcg',route:'Oral',           freq:'daily',   days:[],         time:'Any', clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#94A3B8',active:false},
+  {id:'p10',name:'Epithalon',            cat:'Peptide',       dose:5000, unit:'mcg',route:'SubQ Injection', freq:'daily',   days:[],         time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#818CF8',active:false},
+  {id:'p11',name:'Test-E',               cat:'Hormone',       dose:62.5, unit:'mg', route:'IM Injection',   freq:'2xweek',  days:[2,6],      time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'2026-06-21',durtype:'ongoing', weeks:'',end:'',          cycle:'Ongoing',pct:'',notes:'',color:'#EF4444',active:true},
+  {id:'p12',name:'Deca',                 cat:'Hormone',       dose:62.5, unit:'mg', route:'IM Injection',   freq:'weekly',  days:[2],        time:'PM',  clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'enddate', weeks:'',end:'2026-06-04',cycle:'',       pct:'',notes:'',color:'#F472B6',active:false},
+  {id:'p13',name:'Human Growth Hormone', cat:'Growth Hormone',dose:3,    unit:'IU', route:'SubQ Injection', freq:'4xweek',  days:[1,2,3,4],  time:'AM',  clock:'',timingNotes:'',doseNotes:'',start:'2026-01-12',durtype:'ongoing', weeks:'',end:'',          cycle:'Ongoing',pct:'',notes:'',color:'#60A5FA',active:true},
+  {id:'p14',name:'MT2',                   cat:'Peptide',       dose:0,    unit:'mg', route:'SubQ Injection', freq:'eod',     days:[1,3,5],    time:'BedTime',clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#F472B6',active:false},
+  {id:'p15',name:'HCG',                   cat:'Supplement',    dose:0,    unit:'mg', route:'Oral',           freq:'daily',   days:[],         time:'AM',     clock:'',timingNotes:'',doseNotes:'',start:'',          durtype:'ongoing', weeks:'',end:'',          cycle:'',       pct:'',notes:'',color:'#818CF8',active:false},
+];
+
+// ─── STATE ───────────────────────────────────────────────────
+let D={compounds:[],logs:[],inventory:[],history:[],skips:[]};
+let viewDate=''; // set in init()
+let fColor=COLORS[0], fSite='';
+
+function save(){
+  const res=safeSet('protocol_data',JSON.stringify(D));
+  if(!res.ok){
+    const msg = res.reason==='quota'
+      ? 'Storage is full. Your latest change may not be saved. Export a backup, then clear old data.'
+      : 'Could not save to this device\'s storage. Your latest change may not be saved.';
+    try{ ptAlert(msg,'Save failed'); }catch(e){ console.error(msg); }
+  }
+  return res.ok;
+}
+function load(){
+  const r=localStorage.getItem('protocol_data');
+  const backup=localStorage.getItem('pt_backup');
+
+  // Pick the best source: whichever has more logs
+  let best=null;
+  if(r){try{best=JSON.parse(r);}catch(e){}}
+  if(backup){
+    try{
+      const b=JSON.parse(backup);
+      const bestLogs=(best&&best.logs)||[];
+      const bLogs=b.logs||[];
+      // Use backup if it has more logs (means protocol_data was reset by code update)
+      if(bLogs.length>bestLogs.length) best=b;
+    }catch(e){}
+  }
+
+  if(best&&best.compounds&&best.compounds.length){
+    D.compounds = best.compounds;
+    D.logs      = best.logs      || [];
+    D.inventory = best.inventory || [];
+    D.history   = best.history   || [];
+    D.skips     = best.skips     || [];
+    // Re-save to protocol_data to keep them in sync
+    safeSet('protocol_data', JSON.stringify(D));
+    if(!D.inventory.length){ D.inventory=defaultInventory(); save(); }
+  } else {
+    D.compounds = DEFAULTS.map(x=>({...x}));
+    D.inventory = defaultInventory();
+    save();
+  }
+}
+
+// ─── UTILS ───────────────────────────────────────────────────
+const uid=()=>'x'+Math.random().toString(36).substr(2,9);
+const tod=()=>localDateStr();
+const fmtT=iso=>new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+const fmtD=s=>new Date(s+'T12:00:00').toLocaleDateString([],{month:'short',day:'numeric'});
+const fmtDY=s=>s?new Date(s+'T12:00:00').toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}):'';
+const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return localDateStr(d)};
+
+// A compound shows today if:
+// - active
+// - days array is empty (means every day) OR today's DOW is in the days array
+function isDue(c){
+  if(!c.active||c.freq==='prn') return false;
+  // Check end date - if compound has expired, don't show it
+  if(c.end && viewDate > c.end) return false;
+  // Check start date - if not started yet, don't show it
+  if(c.start && viewDate < c.start) return false;
+  // Check weeks-based duration
+  if(c.durtype==='weeks' && c.weeks && c.start){
+    const startD = new Date(c.start+'T12:00:00');
+    const endD = new Date(startD);
+    endD.setDate(endD.getDate() + parseInt(c.weeks)*7);
+    const endStr = localDateStr(endD);
+    if(viewDate > endStr) return false;
+  }
+  if(!c.days||c.days.length===0) return true;
+  // Use viewDate's day of week, not today's
+  return c.days.includes(new Date(viewDate+'T12:00:00').getDay());
+}
+function doneOnDate(c,slot,date){
+  if(slot){
+    return D.logs.some(l=>l.pid===c.id&&l.slot===slot&&l.t.startsWith(date));
+  }
+  return D.logs.some(l=>l.pid===c.id&&l.t.startsWith(date));
+}
+function doneToday(c,slot){ return doneOnDate(c,slot,viewDate); }
+
+// A snooze marks one dose, on one day, as deliberately skipped.
+// The compound itself is untouched - it returns tomorrow as normal.
+function snoozeFor(c,slot,date){
+  date=date||viewDate; slot=slot||'';
+  return (D.skips||[]).find(k=>{
+    if(k.pid!==c.id || (k.slot||'')!==slot) return false;
+    if(k.from) return date>=k.from && date<=(k.to||k.from);
+    return k.date===date;              // legacy single-day record
+  });
+}
+function isSkipped(c,slot,date){ return !!snoozeFor(c,slot,date); }
+function snoozeEndsOn(c,slot,date){
+  const k=snoozeFor(c,slot,date);
+  if(!k) return '';
+  const to=k.to||k.from||k.date;
+  return (to && to!==(date||viewDate)) ? to : '';
+}
+let _snzPid='', _snzSlot='';
+
+function toggleSkip(pid,slot,e){
+  if(e) e.stopPropagation();
+  const c=D.compounds.find(x=>x.id===pid); if(!c) return;
+  _snzPid=pid; _snzSlot=slot||'';
+  document.getElementById('snz-title').textContent='Snooze '+c.name+(_snzSlot?' ('+_snzSlot.toUpperCase()+')':'');
+  const k=snoozeFor(c,_snzSlot,viewDate);
+  const cur=document.getElementById('snz-current');
+  const unw=document.getElementById('snz-unwrap');
+  if(k){
+    const to=k.to||k.from||k.date;
+    cur.textContent='Currently snoozed until '+new Date(to+'T12:00:00')
+      .toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'});
+    cur.classList.remove('hidden'); unw.classList.remove('hidden');
+  } else {
+    cur.classList.add('hidden'); unw.classList.add('hidden');
+  }
+  document.getElementById('snz-until').value=addDays(viewDate,7);
+  openOv('ov-snooze');
+}
+
+function writeSnooze(from,to){
+  const c=D.compounds.find(x=>x.id===_snzPid); if(!c) return;
+  if(!D.skips) D.skips=[];
+  // replace any existing snooze on this dose, and clear logs inside the range
+  D.skips=D.skips.filter(k=>!(k.pid===_snzPid && (k.slot||'')===_snzSlot));
+  D.logs=D.logs.filter(l=>{
+    if(l.pid!==_snzPid || (l.slot||'')!==_snzSlot) return true;
+    const d=l.t.split('T')[0];
+    return !(d>=from && d<=to);
+  });
+  D.skips.push({id:uid(),pid:_snzPid,slot:_snzSlot,from,to});
+  save(); render(); closeOv('ov-snooze');
+}
+
+function applySnooze(days){
+  writeSnooze(viewDate, addDays(viewDate, Math.max(1,days)-1));
+}
+
+function applySnoozeUntil(){
+  const to=document.getElementById('snz-until').value;
+  if(!to){ ptAlert('Pick a date first.'); return; }
+  if(to<viewDate){ ptAlert('That date is in the past.'); return; }
+  writeSnooze(viewDate, to);
+}
+
+function clearSnooze(){
+  D.skips=(D.skips||[]).filter(k=>!(k.pid===_snzPid && (k.slot||'')===_snzSlot));
+  save(); render(); closeOv('ov-snooze');
+}
+function allDoneToday(c){
+  if(c.time==='Both') return doneToday(c,'am')&&doneToday(c,'pm');
+  return doneToday(c);
+}
+function bucket(c){
+  if(c.time==='Both') return 'both';
+  if(['PM','BedTime'].includes(c.time)) return 'pm';
+  if(c.time==='Any'||c.time==='WithMeal') return 'any';
+  return 'am';
+}
+function streak(){
+  let s=0;
+  for(let i=0;i<=365;i++){
+    const d=dAgo(i);
+    if(D.logs.some(l=>l.t.startsWith(d)) || (D.skips||[]).some(k=>k.date===d)) s++;
+    else if(i>0) break;
+  }
+  return s;
+}
+
+// ─── RENDER ──────────────────────────────────────────────────
+function render(){ try{renderStorageUsage();}catch(e){}rToday();rProto();rLog();rInv();rStats();rHist();}
+function rStack(){
+  const el=document.getElementById('stack-content');
+  if(!el) return;
+
+  const active=D.compounds.filter(c=>c.active);
+  if(!active.length){
+    el.innerHTML='<div class="empty"><div class="empty-ic">🧬</div><div class="empty-t">No active compounds</div><div>Activate compounds in the Protocol tab</div></div>';
+    return;
+  }
+
+  // Categorise: Peptides vs Compounds (hormones/steroids etc)
+  const PEPTIDE_CATS=['Peptide','Growth Hormone','Nootropic'];
+  const peptides=active.filter(c=>PEPTIDE_CATS.includes(c.cat)||!c.cat);
+  const compounds=active.filter(c=>!PEPTIDE_CATS.includes(c.cat)&&c.cat);
+
+  function daysPerWeek(c){
+    if(!c.days||c.days.length===0){
+      // daily or freq-based
+      const map={daily:7,bid:7,eod:3.5,e3d:2.3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:0.25,prn:0};
+      return map[c.freq]||7;
+    }
+    return c.days.length;
+  }
+
+  function dosesPerDay(c){
+    return c.time==='Both'?2:1;
+  }
+
+  function fmtDose(dose,unit){
+    return dose+' '+unit;
+  }
+
+  function buildRow(c){
+    const dpw=daysPerWeek(c);
+    const dpd=dosesPerDay(c);
+    const jabDose=c.dose*(dpd); // dose on jab days (e.g. BPC Both = 500mcg x2 = 1000mcg per jab day)
+    const weeklyDose=jabDose*dpw;
+    const jabDoseStr=fmtDose(jabDose,c.unit);
+    const weeklyStr=fmtDose(weeklyDose%1===0?weeklyDose:parseFloat(weeklyDose.toFixed(2)),c.unit);
+    const dpwStr=dpw===7?'Daily':dpw===3.5?'EOD':dpw%1===0?dpw+'x/wk':dpw+'x/wk';
+    return`<div class="stack-row">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${c.color||'#fff'};flex-shrink:0"></div>
+        <div style="font-size:15px;font-weight:700;color:#fff">${esc(c.name)}</div>
+        <div style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px">${c.route||''}</div>
+      </div>
+      <div class="stack-row-grid">
+        <div class="stack-cell">
+          <div class="stack-lbl">Frequency</div>
+          <div class="stack-val">${dpwStr}</div>
+        </div>
+        <div class="stack-cell">
+          <div class="stack-lbl">Dose per Session</div>
+          <div class="stack-val">${jabDoseStr}</div>
+        </div>
+        <div class="stack-cell">
+          <div class="stack-lbl">Weekly Total</div>
+          <div class="stack-val">${weeklyStr}</div>
+        </div>
+        <div class="stack-cell">
+          <div class="stack-lbl">Timing</div>
+          <div class="stack-val">${c.time==='Both'?'AM + PM':c.time||'—'}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function buildSection(title, items, icon){
+    if(!items.length) return '';
+    return`<div class="stack-section">
+      <div class="stack-section-hdr">${icon} ${title}</div>
+      ${items.map(buildRow).join('')}
+    </div>`;
+  }
+
+  el.innerHTML=buildSection('Peptides & Nootropics', peptides, '💉')+buildSection('Hormones & Compounds', compounds, '🧴');
+}
+
+// Days until this compound's cycle ends (null when it has no end)
+function daysUntilCycleEnd(c){
+  const end=getCompoundEndDate(c);
+  if(!end) return null;
+  const a=new Date(viewDate+'T12:00:00'), b=new Date(end+'T12:00:00');
+  if(isNaN(a)||isNaN(b)) return null;
+  return Math.round((b-a)/86400000);
+}
+function expiryBadge(d){
+  if(d===0) return 'Ends today';
+  if(d===1) return '1 day left';
+  return d+' days left';
+}
+
+// Oil-based compounds are pre-mixed: vialSize is mg/ml, not vial content
+function isOilBased(c){
+  const cat=(c.cat||'').toLowerCase();
+  const route=(c.route||'').toLowerCase();
+  return cat==='hormone' || route.indexOf('oil')>-1 || route.indexOf('im injection')>-1;
+}
+
+// Pin amount: ml for oil-based, U-100 units for reconstituted peptides
+function pinBadge(c){
+  const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater), dose=parseFloat(c.dose);
+  if(!vs||!dose) return '';
+  const doseMcg=toMcg(dose, c.unit);
+  if(isOilBased(c)){
+    const concMcg=toMcg(vs, c.vialUnit||'mg');
+    if(!concMcg) return '';
+    const ml=doseMcg/concMcg;
+    if(!isFinite(ml)||ml<=0) return '';
+    return '\u{1F489} '+ml.toFixed(2)+'ml';
+  }
+  if(!bac) return '';
+  const concMcg=toMcg(vs/bac, c.vialUnit||'mg');
+  if(!concMcg) return '';
+  const units=(doseMcg/concMcg)*100;
+  if(!isFinite(units)||units<=0) return '';
+  return '\u{1F489} '+(units<10?units.toFixed(1):units.toFixed(0))+' units';
+}
+
+// Tapping the pin badge opens Calc with that compound already loaded
+function openCalcFor(pid,e){
+  if(e) e.stopPropagation();
+  const btn=document.querySelector('.tb[onclick*="calc"]');
+  if(btn) nav('calc',btn);
+  const sel=document.getElementById('c-compound');
+  if(sel){ sel.value=pid; loadFromProtocol(); }
+}
+
+function rToday(){
+  const active=D.compounds.filter(c=>c.active);
+  const due=active.filter(c=>isDue(c));
+
+  // For stats: 'Both' compounds count as 2 doses
+  let totalDoses=0, doneDoses=0, snoozed=0;
+  due.forEach(c=>{
+    if(c.time==='Both'){
+      ['am','pm'].forEach(sl=>{
+        if(isSkipped(c,sl,viewDate)){ snoozed++; return; }
+        totalDoses++;
+        if(doneToday(c,sl)) doneDoses++;
+      });
+    } else {
+      if(isSkipped(c,'',viewDate)){ snoozed++; return; }
+      totalDoses++;
+      if(allDoneToday(c)) doneDoses++;
+    }
+  });
+  document.getElementById('s-done').textContent=doneDoses;
+  document.getElementById('s-due').textContent=totalDoses-doneDoses;
+  document.getElementById('s-streak').textContent=streak();
+
+  const amItems=due.filter(c=>['am','any'].includes(bucket(c))||bucket(c)==='both');
+  const pmItems=due.filter(c=>bucket(c)==='pm'||bucket(c)==='both');
+
+  function chkRow(c, slot){
+    // slot is 'am', 'pm', or null (single dose)
+    const ok = slot ? doneToday(c,slot) : allDoneToday(c);
+    const checkId = slot ? c.id+'_'+slot : c.id;
+    const pin = pinBadge(c);
+    const dLeft = daysUntilCycleEnd(c);
+    const expiring = dLeft!==null && dLeft>=0 && dLeft<=7;
+    const snz = isSkipped(c, slot||'', viewDate);
+    const snzTo = snz ? snoozeEndsOn(c, slot||'', viewDate) : '';
+    return`<div class="ci ${ok?'done':''} ${expiring&&!snz?'expiring':''} ${snz?'snoozed':''}" onclick="quickCheck('${c.id}','${slot||''}')">
+      <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="dot" style="background:${c.color}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="ci-name">${esc(c.name)}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}</div>
+        <div class="ci-sub">${c.dose} ${c.unit} · ${esc(c.route)}${pin?` · <span class="pin-badge" onclick="openCalcFor('${c.id}',event)">${pin}</span>`:''}</div>
+      </div>
+      <button class="snooze-btn ${snz?'on':''}" title="${snz?'Un-snooze':'Snooze for this day'}"
+        onclick="toggleSkip('${c.id}','${slot||''}',event)">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>`;
+  }
+
+  function colHTML(items, slot){
+    const ttl=slot==='am'?'AM':'PM';
+    const cls=slot==='am'?'am':'pm';
+    // Count done for this column
+    const dc=items.filter(c=>c.time==='Both'?doneToday(c,slot):allDoneToday(c)).length;
+    const rows=items.length
+      ? items.map(c=>chkRow(c, c.time==='Both'?slot:null)).join('')
+      : `<div class="col-empty">Nothing scheduled</div>`;
+    return`<div class="col">
+      <div class="col-hdr"><span class="col-ttl ${cls}">${ttl}</span><span class="col-cnt">${dc}/${items.length}</span></div>
+      ${rows}
+    </div>`;
+  }
+
+  document.getElementById('ampm').innerHTML=colHTML(amItems,'am')+colHTML(pmItems,'pm');
+
+  const anyExpiring=due.some(c=>{
+    const d=daysUntilCycleEnd(c);
+    return d!==null && d>=0 && d<=7;
+  });
+  const lg=document.getElementById('expiry-legend');
+  if(lg) lg.innerHTML = anyExpiring
+    ? '<div class="expiry-legend-inner"><span style="font-size:15px">\u{1F534}</span>'+
+      '<span>Red box = within 7 days of cycle end. Plan your next cycle soon.</span></div>'
+    : '';
+
+  const ta=document.getElementById('tickall');
+  const allDone=totalDoses>0&&doneDoses===totalDoses;
+  ta.classList.toggle('hidden',totalDoses===0);
+  document.getElementById('tick-chk').classList.toggle('done',allDone);
+  document.getElementById('tick-cnt').textContent=`${doneDoses}/${totalDoses} done`;
+}
+
+function quickCheck(pid,slot){
+  const c=D.compounds.find(x=>x.id===pid);if(!c)return;
+  const t=viewDate;
+  // marking a dose done ends its snooze - you're clearly back on it
+  if(D.skips&&D.skips.length){
+    D.skips=D.skips.filter(k=>!(k.pid===pid && (k.slot||'')===(slot||'')));
+  }
+  // For past dates use noon, for today use current time
+  let ts;
+  if(viewDate===tod()){
+    ts=localDateTimeStr(new Date());
+  } else {
+    ts=viewDate+'T12:00'; // log at noon for past days
+  }
+  if(slot){
+    if(doneToday(c,slot)){
+      D.logs=D.logs.filter(l=>!(l.pid===pid&&l.slot===slot&&l.t.startsWith(t)));
+    } else {
+      D.logs.push({id:uid(),pid,slot,dose:c.dose,unit:c.unit,site:'',t:ts,notes:'Backdated'});
+    }
+  } else {
+    if(allDoneToday(c)){
+      D.logs=D.logs.filter(l=>!(l.pid===pid&&l.t.startsWith(t)));
+    } else {
+      D.logs.push({id:uid(),pid,slot:'',dose:c.dose,unit:c.unit,site:'',t:ts,notes:viewDate!==tod()?'Backdated':''});
+    }
+  }
+  save();render();
+}
+
+function tickAll(){
+  const due=D.compounds.filter(c=>c.active&&isDue(c));
+  const t=viewDate;
+  // Check if everything is done
+  const active=due.filter(c=>!(c.time==='Both'
+      ? (isSkipped(c,'am',t)&&isSkipped(c,'pm',t))
+      : isSkipped(c,'',t)));
+  const allDone=active.every(c=>allDoneToday(c));
+  if(allDone){
+    D.logs=D.logs.filter(l=>!l.t.startsWith(t)||!due.some(c=>c.id===l.pid));
+  } else {
+    let ts;
+    if(viewDate===tod()){ts=localDateTimeStr(new Date());}
+    else{ts=viewDate+'T12:00';}
+    active.forEach(c=>{
+      if(c.time==='Both'){
+        if(!doneToday(c,'am')&&!isSkipped(c,'am',t)) D.logs.push({id:uid(),pid:c.id,slot:'am',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
+        if(!doneToday(c,'pm')&&!isSkipped(c,'pm',t)) D.logs.push({id:uid(),pid:c.id,slot:'pm',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
+      } else if(!allDoneToday(c)){
+        D.logs.push({id:uid(),pid:c.id,slot:'',dose:c.dose,unit:c.unit,site:'',t:ts,notes:''});
+      }
+    });
+  }
+  save();render();
+}
+
+function rProto(){
+  const DOW=[1,2,3,4,5,6,0]; // Mon Tue Wed Thu Fri Sat Sun
+  const tbody=document.getElementById('proto-body');
+  if(!D.compounds.length){
+    tbody.innerHTML=`<tr><td colspan="13" style="padding:32px;text-align:center;color:var(--text2)">No compounds yet — tap + Add Row</td></tr>`;
+    return;
+  }
+  tbody.innerHTML=D.compounds.map(c=>{
+    // Active toggle
+    const tog=`<button class="act-tog ${c.active?'on':'off'}" onclick="togActive('${c.id}',event)" title="${c.active?'Active':'Inactive'}"><div class="act-knob"></div></button>`;
+
+    // Unit select
+    const units=['mg','mcg','IU','ml','units'];
+    const unitSel=`<select class="ie-unit" onchange="inlineUnit('${c.id}',this)" onclick="event.stopPropagation()">
+      ${units.map(u=>`<option ${u===c.unit?'selected':''}>${u}</option>`).join('')}
+    </select>`;
+
+    // Time select
+    const times=[['AM','AM'],['PM','PM'],['Both','AM+PM'],['BedTime','Bed'],['PreWO','PreWO'],['PostWO','PostWO'],['Fasted','Fasted'],['Any','Any']];
+    const timeSel=`<select class="ie-time" onchange="inlineTime('${c.id}',this)" onclick="event.stopPropagation()">
+      ${times.map(([v,l])=>`<option value="${v}" ${v===c.time?'selected':''}>${l}</option>`).join('')}
+    </select>`;
+
+    // Day Y cells — empty days = all days active
+    const allDays=!c.days||c.days.length===0;
+    const dayCells=DOW.map(d=>{
+      const on=allDays||c.days.includes(d);
+      return`<td class="day-cell"><div class="day-y ${on?'on':''}" onclick="togDay('${c.id}',${d},event)">${on?'Y':''}</div></td>`;
+    }).join('');
+
+    const inactiveStyle=c.active?'':'opacity:0.55;font-style:italic';
+    return`<tr style="${inactiveStyle}">
+      <td style="padding:0">
+        <div style="display:flex;align-items:center;gap:6px;padding-left:6px">
+          <div style="width:7px;height:7px;border-radius:50%;background:${c.color};flex-shrink:0"></div>
+          <input class="ie-name" value="${esc(c.name)}" onchange="inlineName('${c.id}',this)" onclick="event.stopPropagation()" placeholder="Name" style="font-style:normal">
+        </div>
+      </td>
+      <td onclick="event.stopPropagation()">${tog}</td>
+      <td><input class="ie-dose" type="number" value="${c.dose||''}" onchange="inlineDose('${c.id}',this)" onclick="event.stopPropagation()" step="0.01"></td>
+      <td onclick="event.stopPropagation()">${unitSel}</td>
+      <td onclick="event.stopPropagation()">${timeSel}</td>
+      ${dayCells}
+      <td class="col-dt" style="font-size:11px;color:var(--text2);white-space:nowrap">${c.start||'—'}</td>
+      <td class="col-dt" style="font-size:11px;color:var(--text2);white-space:nowrap">${getCompoundEndDate(c)||'—'}</td>
+      <td class="col-dt" style="font-size:11px;color:var(--text2);white-space:nowrap">${c.durtype==='weeks'&&c.weeks?c.weeks+' wks':c.durtype==='ongoing'?'Ongoing':c.cycle||'—'}</td>
+      <td class="col-edit"><button class="edit-btn" onclick="openEdit('${c.id}')" title="Edit full protocol">⋯</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function inlineName(pid,el){
+  const c=D.compounds.find(x=>x.id===pid);if(!c)return;
+  c.name=el.value.trim()||c.name;save();rToday();
+}
+function inlineDose(pid,el){
+  const c=D.compounds.find(x=>x.id===pid);if(!c)return;
+  c.dose=parseFloat(el.value)||c.dose;save();
+}
+function inlineUnit(pid,el){
+  const c=D.compounds.find(x=>x.id===pid);if(!c)return;
+  c.unit=el.value;save();
+}
+function inlineTime(pid,el){
+  const c=D.compounds.find(x=>x.id===pid);if(!c)return;
+  c.time=el.value;save();rToday();
+}
+function togActive(pid,e){
+  e.stopPropagation();
+  const c=D.compounds.find(x=>x.id===pid);if(!c)return;
+  c.active=!c.active;
+  if(c.active) startFreshCycle(c);
+  save();rProto();rToday();
+  // Activating opens the detail form so the new cycle can be reviewed/adjusted
+  // straight away. Deactivating just switches it off.
+  if(c.active) openEdit(pid);
+}
+
+// Turning a compound on starts a new cycle: today + 12 weeks by default.
+// Leaves an in-progress cycle alone, and never overrides a deliberate 'ongoing'.
+function startFreshCycle(c){
+  const end=getCompoundEndDate(c);
+  const finished = end && end < tod();
+  const notStarted = !c.start;
+  if(!(finished || notStarted)) return;
+  c.start = tod();
+  if(c.durtype==='ongoing') return;
+  c.durtype = 'weeks';
+  c.weeks   = c.weeks || '12';
+  c.end     = addDays(c.start, parseInt(c.weeks)*7);
+}
+function togDay(pid,day,e){
+  e.stopPropagation();
+  const c=D.compounds.find(x=>x.id===pid);if(!c)return;
+  let days=c.days&&c.days.length>0?[...c.days]:[0,1,2,3,4,5,6];
+  if(days.includes(day)) days=days.filter(d=>d!==day);
+  else days.push(day);
+  c.days=days.length===7?[]:days;
+  save();rProto();rToday();
+}
+
+function rLog(){
+  const el=document.getElementById('log-list');if(!el)return;
+  const logs=[...D.logs].sort((a,b)=>new Date(b.t)-new Date(a.t));
+  if(!logs.length){el.innerHTML=`<div class="empty"><div class="empty-ic">📋</div><div class="empty-t">No logs yet</div>Tap + to log your first dose</div>`;return;}
+  const g={};logs.forEach(l=>{const d=l.t.split('T')[0];if(!g[d])g[d]=[];g[d].push(l);});
+  let h='';
+  Object.keys(g).sort((a,b)=>b.localeCompare(a)).forEach(date=>{
+    h+=`<div class="sec">${date===tod()?'Today':fmtD(date)}</div>`;
+    g[date].forEach((l,i)=>{
+      const c=D.compounds.find(x=>x.id===l.pid);
+      h+=`<div class="li">
+        <div class="li-dot" style="background:${c?c.color:'var(--accent)'}"></div>
+        <div style="flex:1"><div class="li-name">${c?c.name:'Unknown'}</div>
+        <div class="li-meta">${l.dose} ${l.unit}${l.site?' · '+l.site:''}${l.notes?' · '+l.notes:''}</div></div>
+        <div class="li-time">${fmtT(l.t)}</div>
+      </div>`;
+    });
+  });
+  el.innerHTML=h;
+}
+
+// Convert any mass/volume unit to a common base (micrograms / micro-IU / microlitres)
+function toBase(amount, unit){
+  switch(unit){
+    case 'mg':  return amount * 1000;   // mg → mcg
+    case 'mcg': return amount;          // already mcg
+    case 'g':   return amount * 1000000;
+    case 'IU':  return amount * 1000;   // IU → mIU (arbitrary but consistent)
+    case 'ml':  return amount * 1000;   // ml → microlitres
+    default:    return amount;
+  }
+}
+
+function toggleInvCard(bodyId){
+  const body=document.getElementById(bodyId);
+  if(!body) return;
+  const card=body.closest('.inv-card');
+  if(card) card.classList.toggle('collapsed');
+  // Rotate chevron
+  const pid=bodyId.replace('inv-body-','');
+  const chev=document.getElementById('inv-chev-'+pid);
+  if(chev) chev.style.transform=card&&card.classList.contains('collapsed')?'rotate(-90deg)':'rotate(0deg)';
+}
+
+async function openVial(pid, entryId, e){
+  e.stopPropagation();
+  if(!(await ptConfirm('Move one vial from storage to In Use?'))) return;
+  const entry=D.inventory.find(x=>x.id===entryId&&x.pid===pid);
+  if(!entry) return;
+  const inStore=entry.vials-(entry.inUse||0);
+  if(inStore<=0){ptAlert('No vials in storage.');return;}
+  // Just increment inUse — vials stays as total count
+  entry.inUse=(entry.inUse||0)+1;
+  entry.openedDate=tod();
+  save();rInv();
+}
+
+async function finishVial(pid, entryId, e){
+  e.stopPropagation();
+  if(!(await ptConfirm('Mark current vial as finished? This will reduce your total vial count by 1.'))) return;
+  const entry=D.inventory.find(x=>x.id===entryId&&x.pid===pid);
+  if(!entry||!entry.inUse) return;
+  // Reduce total vials AND inUse when a vial is finished (consumed)
+  entry.vials=Math.max(0,entry.vials-1);
+  entry.inUse=Math.max(0,(entry.inUse||1)-1);
+  if(entry.inUse===0) entry.openedDate='';
+  save();rInv();
+}
+
+function addSizeEntry(pid, e){
+  e.stopPropagation();
+  // Pre-select the compound and open a fresh add form
+  openAddInv();
+  document.getElementById('iv-pid').value=pid;
+}
+
+function dosesPerDay(c){
+  if(!c) return 0;
+  const freq=c.freq;
+  const daysPerWeek=c.days&&c.days.length>0?c.days.length:7;
+  const multiplier=c.time==='Both'?2:1;
+  const map={daily:7,bid:7,eod:3.5,e3d:7/3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:7/30,prn:0};
+  const dosesPerWeek=(map[freq]!==undefined?map[freq]:daysPerWeek)*multiplier;
+  return dosesPerWeek/7;
+}
+
+function daysUntilNextVial(c,inv){
+  if(!c||!c.dose) return null;
+  const oneVialQty=inv[0].qty;
+  const invUnit=inv[0].unit;
+  const doseBase=toBase(c.dose, c.unit);      // dose in base units
+  const vialBase=toBase(oneVialQty, invUnit);  // vial in base units
+  const dpd=dosesPerDay(c);
+  if(!dpd||!doseBase||!vialBase) return null;
+  const dosePerDayBase=dpd*doseBase;
+  return Math.round(vialBase/dosePerDayBase);
+}
+
+function daysUntilStockOut(c,inv){
+  if(!c||!c.dose) return null;
+  const totalBase=inv.reduce((s,v)=>s+toBase(v.vials*v.qty, v.unit),0);
+  const doseBase=toBase(c.dose, c.unit);
+  const dpd=dosesPerDay(c);
+  if(!dpd||!doseBase||!totalBase) return null;
+  const dosePerDayBase=dpd*doseBase;
+  return Math.round(totalBase/dosePerDayBase);
+}
+
+function fmtDaysLeft(days){
+  if(days===null) return '—';
+  if(days<0) return 'Overdue';
+  if(days===0) return 'Today';
+  if(days<7) return days+'d';
+  if(days<30) return Math.round(days/7)+'w';
+  return Math.round(days/30)+'mo';
+}
+
+function rInv(){
+  const el=document.getElementById('inv-list');
+  if(!D.inventory.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ic">📦</div><div class="empty-t">No stock recorded</div><div>Tap + Add Stock to get started</div></div>`;
+    return;
+  }
+  // Group by compound
+  const grouped={};
+  D.inventory.forEach(v=>{
+    if(!grouped[v.pid]) grouped[v.pid]=[];
+    grouped[v.pid].push(v);
+  });
+
+  el.innerHTML=Object.keys(grouped).map(pid=>{
+    const c=D.compounds.find(x=>x.id===pid);
+    const inv=grouped[pid];
+    const totalVials=inv.reduce((s,v)=>s+v.vials,0);
+    const totalQty=inv.reduce((s,v)=>s+(v.vials*v.qty),0);
+    const unit=inv[0].unit;
+    const purchased=inv[inv.length-1].purchased;
+    const nextVial=daysUntilNextVial(c,inv);
+    const stockOut=daysUntilStockOut(c,inv);
+    const dpd=dosesPerDay(c);
+    const dosePerDay=dpd*(c?c.dose||0:0);
+
+    const totalInUse=inv.reduce((s,v)=>s+(v.inUse||0),0);
+    const totalInStorage=totalVials-totalInUse;
+    const openedDate=inv.find(v=>v.openedDate)?.openedDate||'';
+
+    // Build per-entry size rows
+    const sizeRows=inv.map(v=>{
+      const lbl=v.label||`${v.qty} ${v.unit}`;
+      const inUse=v.inUse||0;
+      const inStore=v.vials-inUse;
+      return`<div class="inv-size-row">
+        <div class="inv-size-lbl">${lbl}</div>
+        <div class="inv-size-cols">
+          <div class="inv-size-stat"><div class="inv-fl">Storage</div><div class="inv-size-val">${inStore}</div></div>
+          <div class="inv-size-stat"><div class="inv-fl">In Use</div><div class="inv-size-val ${inUse>0?'c-ok':'inv-none'}">${inUse||'—'}</div></div>
+          <div class="inv-size-stat"><div class="inv-fl">Purchased</div><div class="inv-size-val">${v.purchased||'—'}</div></div>
+          ${v.bac?`<div class="inv-size-stat"><div class="inv-fl">BAC Water</div><div class="inv-size-val">${v.bac} ml</div></div>`:''}
+        </div>
+        <div class="inv-size-btns">
+          ${inStore>0?`<button class="inv-action-btn open" onclick="openVial('${pid}','${v.id}',event)">Open →</button>`:''}
+          ${inUse>0?`<button class="inv-action-btn finish" onclick="finishVial('${pid}','${v.id}',event)">Finish ✓</button>`:''}
+          <button class="inv-action-btn" onclick="openEditInv('${pid}','${v.id}',event)" style="font-size:11px">Edit</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    return`<div class="inv-card collapsed" id="invcard-${pid}">
+      <div class="inv-card-hdr" onclick="toggleInvCard('inv-body-${pid}')" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+          <div style="width:9px;height:9px;border-radius:50%;background:${c?c.color:'#fff'};flex-shrink:0"></div>
+          <div style="font-size:15px;font-weight:700;flex:1">${c?c.name:'Unknown'}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.55)">${totalVials} vial${totalVials!==1?'s':''} · ${c&&c.active?'Active':'Inactive'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-left:8px" onclick="event.stopPropagation()">
+          <button class="inv-action-btn" onclick="addSizeEntry('${pid}',event)" style="font-size:11px;padding:3px 8px">+ Size</button>
+          <span class="inv-chevron" id="inv-chev-${pid}">⌄</span>
+        </div>
+      </div>
+      <div class="inv-card-body" id="inv-body-${pid}">
+      ${sizeRows}
+      <div class="inv-grid" style="margin:0;padding:12px 14px;border-top:1px solid rgba(255,255,255,.1)">
+        ${openedDate?`<div class="inv-f" style="grid-column:1/-1"><div class="inv-fl">Current Vial Opened</div><div class="inv-fv">${openedDate}</div></div>`:''}
+        <div class="inv-f" style="grid-column:1/-1">
+          <div class="inv-fl">Daily Usage</div>
+          <div class="inv-fv">${dosePerDay?dosePerDay.toFixed(1)+' '+(c?c.unit:'')+ '/day':'—'}</div>
+        </div>
+        <div class="inv-f ${nextVial!==null&&nextVial<7?'inv-warn':''}">
+          <div class="inv-fl">Next Vial Due</div>
+          <div class="inv-fv">${fmtDaysLeft(nextVial)}</div>
+        </div>
+        <div class="inv-f ${stockOut!==null&&stockOut<14?'inv-warn':''}">
+          <div class="inv-fl">Stock Runs Out</div>
+          <div class="inv-fv">${fmtDaysLeft(stockOut)}</div>
+        </div>
+      </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function rStats(){
+  let dots='';
+  for(let i=29;i>=0;i--){const d=dAgo(i);dots+=`<div class="sd ${D.logs.some(l=>l.t.startsWith(d))?'on':''}" title="${d}"></div>`;}
+  document.getElementById('streak').innerHTML=dots;
+  document.getElementById('stats-list').innerHTML=D.compounds.filter(c=>c.active).map(c=>{
+    const logs=D.logs.filter(l=>l.pid===c.id);
+    const last=logs.length?logs.sort((a,b)=>new Date(b.t)-new Date(a.t))[0]:null;
+    return`<div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="width:10px;height:10px;border-radius:50%;background:${c.color}"></div>
+        <div style="font-weight:600;font-size:14px;flex:1">${esc(c.name)}</div>
+        <div style="font-size:12px;color:var(--text2);font-family:var(--mono)">${logs.length} doses</div>
+      </div>
+      <div style="font-size:12px;color:var(--text2)">Last: ${last?fmtD(last.t.split('T')[0])+' at '+fmtT(last.t):'Never logged'}</div>
+    </div>`;
+  }).join('');
+}
+
+function setHistMode(mode){
+  document.getElementById('histmode-compound').classList.toggle('on', mode==='compound');
+  document.getElementById('histmode-date').classList.toggle('on', mode==='date');
+  document.getElementById('hist-compound-view').style.display = mode==='compound'?'block':'none';
+  document.getElementById('hist-date-view').style.display = mode==='date'?'block':'none';
+  if(mode==='compound') rHist();
+  if(mode==='date') rHistByDate();
+}
+
+function rHistByDate(){
+  const sel = document.getElementById('hist-month-filter');
+  const cur = sel.value;
+
+  // Build list of unique month/years from history
+  const months = {};
+  (D.history||[]).forEach(h=>{
+    const d = new Date(h.savedAt);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const label = d.toLocaleDateString([],{month:'long',year:'numeric'});
+    months[key] = label;
+  });
+
+  sel.innerHTML = '<option value="">— Select month/year —</option>' +
+    Object.keys(months).sort((a,b)=>b.localeCompare(a))
+      .map(k=>`<option value="${k}" ${k===cur?'selected':''}>${months[k]}</option>`).join('');
+
+  const el = document.getElementById('hist-date-list');
+  if(!cur){ el.innerHTML=''; return; }
+
+  if(!D.history||!D.history.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ic">📅</div><div class="empty-t">No history yet</div></div>`;
+    return;
+  }
+
+  const [yr, mo] = cur.split('-').map(Number);
+  const monthEnd = new Date(yr, mo, 0, 23, 59, 59); // last day of month
+  const monthStart = new Date(yr, mo-1, 1);
+
+  // Group by compound, get latest snap before monthEnd
+  const byCompound = {};
+  D.history.forEach(h=>{
+    const savedAt = new Date(h.savedAt);
+    if(savedAt > monthEnd) return;
+    if(!byCompound[h.cid] || new Date(byCompound[h.cid].savedAt) < savedAt){
+      byCompound[h.cid] = h;
+    }
+  });
+
+  // Fall back to current protocol for compounds with no history in/before this period
+  D.compounds.forEach(c=>{
+    if(!byCompound[c.id]){
+      // Include if compound was likely active then (no history = use current settings)
+      byCompound[c.id] = {
+        id:'fallback-'+c.id, cid:c.id, name:c.name,
+        savedAt:monthEnd.toISOString(), snap:{...c}
+      };
+    }
+  });
+
+  const entries = Object.values(byCompound).filter(h=>h.snap && h.snap.active !== false);
+
+  if(!entries.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ic">📅</div><div class="empty-t">No protocol data for this period</div></div>`;
+    return;
+  }
+
+  const FL2={daily:'Daily',bid:'Twice Daily',eod:'Every Other Day',e3d:'Every 3 Days',
+    '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
+    weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
+  const DOW_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const fmtDays=days=>(!days||!days.length)?'Every day':[...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
+
+  const monthLabel = months[cur] || cur;
+
+  el.innerHTML = `
+    <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:13px;font-weight:700">${entries.length} active compound${entries.length!==1?'s':''}</div>
+        <div style="font-size:11px;color:var(--text2)">Protocol during ${monthLabel}</div>
+      </div>
+      <button class="btn btn-s btn-sm" onclick="importHistoryProtocol('${cur}')" style="font-size:11px;padding:6px 12px;white-space:nowrap">⬇ Import Protocol</button>
+    </div>
+    ${entries.sort((a,b)=>a.name.localeCompare(b.name)).map(h=>{
+      const s=h.snap;
+      return`<div class="hist-entry">
+        <div class="hist-hdr">
+          <div style="width:9px;height:9px;border-radius:50%;background:${s.color||'var(--accent)'}"></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700">${esc(h.name)}</div>
+            <div class="hist-date">${s.dose||'—'} ${s.unit||''} · ${FL2[s.freq]||s.freq||'—'} · ${s.time||'—'}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+async function importHistoryProtocol(monthKey){
+  if(!monthKey) return;
+  const [yr, mo] = monthKey.split('-').map(Number);
+  const monthEnd = new Date(yr, mo, 0, 23, 59, 59);
+
+  const byCompound = {};
+  D.history.forEach(h=>{
+    const savedAt = new Date(h.savedAt);
+    if(savedAt > monthEnd) return;
+    if(!byCompound[h.cid] || new Date(byCompound[h.cid].savedAt) < savedAt){
+      byCompound[h.cid] = h;
+    }
+  });
+
+  const entries = Object.values(byCompound);
+  if(!entries.length) return;
+
+  const months = {};
+  const d = new Date(yr, mo-1, 1);
+  const label = d.toLocaleDateString([],{month:'long',year:'numeric'});
+
+  if(!(await ptConfirm('Import protocol from '+label+'? This will overwrite your current protocol settings for these '+entries.length+' compound(s).'))) return;
+
+  entries.forEach(h=>{
+    const snap = h.snap;
+    const idx = D.compounds.findIndex(c=>c.id===h.cid);
+    if(idx===-1){
+      // Compound doesn't exist - add it back
+      D.compounds.push({...snap, id:h.cid});
+    } else {
+      // Restore snap fields onto existing compound
+      const keep = {id:D.compounds[idx].id, name:D.compounds[idx].name};
+      D.compounds[idx] = {...snap, ...keep};
+    }
+  });
+
+  save();
+  render();
+  nav('records', document.querySelector('.tb[onclick*="records"]'));
+  setRecTab('hist');
+  ptAlert('Protocol imported from '+label+'!');
+}
+
+async function importCompoundHistory(histId){
+  const h = (D.history||[]).find(e=>e.id===histId);
+  if(!h) return;
+  const snap = h.snap;
+  if(!(await ptConfirm('Import this version of '+esc(h.name)+' into your current protocol?'))) return;
+  const idx = D.compounds.findIndex(c=>c.id===h.cid);
+  if(idx===-1){
+    D.compounds.push({...snap, id:h.cid});
+  } else {
+    const keep = {id:D.compounds[idx].id, name:D.compounds[idx].name};
+    D.compounds[idx] = {...snap, ...keep};
+  }
+  save();
+  render();
+  ptAlert(h.name+' protocol restored!');
+}
+
+function rHist(){
+  // Populate compound filter
+  const sel=document.getElementById('hist-filter');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Select compound —</option>'+
+    D.compounds.map(c=>`<option value="${c.id}" ${c.id===cur?'selected':''}>${esc(c.name)}</option>`).join('');
+
+  const el=document.getElementById('hist-list');
+  if(!D.history||!D.history.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ic">📜</div><div class="empty-t">No history yet</div>Changes appear here after saving a protocol update.</div>`;
+    return;
+  }
+  if(!cur){
+    el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px">Select a compound above to see its history</div>`;
+    return;
+  }
+
+  const items=[...D.history]
+    .filter(h=>h.cid===cur)
+    .sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt));
+
+  if(!items.length){
+    // No history yet - show current settings as "Current (no changes recorded)"
+    const c = D.compounds.find(c=>c.id===cur);
+    if(c){
+      const FL2={daily:'Daily',bid:'Twice Daily',eod:'Every Other Day',e3d:'Every 3 Days',
+        '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
+        weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
+      const DOW_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const fmtDays=days=>(!days||!days.length)?'Every day':[...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
+      el.innerHTML=`<div class="hist-entry">
+        <div class="hist-hdr">
+          <div style="width:9px;height:9px;border-radius:50%;background:${c.color||'var(--accent)'}"></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700">Current Settings</div>
+            <div class="hist-date">No changes recorded yet — press Save & Update to start tracking</div>
+          </div>
+          <span style="font-size:11px;color:var(--text2)">Current</span>
+        </div>
+        <div class="hist-body">
+          <div class="hist-field"><div class="hist-field-l">Dose</div><div class="hist-field-v">${c.dose||'—'} ${c.unit||''}</div></div>
+          <div class="hist-field"><div class="hist-field-l">Frequency</div><div class="hist-field-v">${FL2[c.freq]||c.freq||'—'}</div></div>
+          <div class="hist-field"><div class="hist-field-l">Timing</div><div class="hist-field-v">${c.time||'—'}</div></div>
+          <div class="hist-field hist-days"><div class="hist-field-l">Days</div><div class="hist-field-v">${fmtDays(c.days)}</div></div>
+        </div>
+      </div>`;
+    } else {
+      el.innerHTML=`<div class="empty"><div class="empty-ic">📜</div><div class="empty-t">No history for this compound</div></div>`;
+    }
+    return;
+  }
+
+  const DOW_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const fmtDays=days=>(!days||!days.length)?'Every day':[...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
+  const fmtDT=iso=>{
+    const d=new Date(iso);
+    return d.toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})+
+      ' · '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  };
+  const FL2={daily:'Daily',bid:'Twice Daily',eod:'Every Other Day',e3d:'Every 3 Days',
+    '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
+    weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
+
+  el.innerHTML=items.map((h,i)=>{
+    const s=h.snap;
+    return`<div class="hist-entry">
+      <div class="hist-hdr">
+        <div style="width:9px;height:9px;border-radius:50%;background:${s.color||'var(--accent)'}"></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">${i===0?'Current':'Version '+(items.length-i)}</div>
+          <div class="hist-date">${fmtDT(h.savedAt)}</div>
+        </div>
+        ${i>0?`<button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="importCompoundHistory('${h.id}')">⬇ Import</button>`:'<span style="font-size:11px;color:var(--text2)">Current</span>'}
+      </div>
+      <div class="hist-body">
+        <div class="hist-field"><div class="hist-field-l">Dose</div><div class="hist-field-v">${s.dose||'—'} ${s.unit||''}</div></div>
+        <div class="hist-field"><div class="hist-field-l">Frequency</div><div class="hist-field-v">${FL2[s.freq]||s.freq||'—'}</div></div>
+        <div class="hist-field"><div class="hist-field-l">Timing</div><div class="hist-field-v">${s.time||'—'}${s.clock?' · '+s.clock:''}</div></div>
+        <div class="hist-field hist-days"><div class="hist-field-l">Days</div><div class="hist-field-v">${fmtDays(s.days)}</div></div>
+        ${s.notes?`<div class="hist-field hist-days"><div class="hist-field-l">Notes</div><div class="hist-field-v" style="font-weight:400;font-size:12px">${esc(s.notes)}</div></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+async function restoreSnap(hid){
+  const h=D.history.find(x=>x.id===hid);if(!h)return;
+  if(!(await ptConfirm('Restore this version? Current protocol will be saved to history first.'))) return;
+  const idx=D.compounds.findIndex(x=>x.id===h.cid);if(idx===-1)return;
+  // Archive current before restoring
+  const cur={...D.compounds[idx]};
+  D.history.push({id:uid(),cid:cur.id,name:cur.name,savedAt:new Date().toISOString(),snap:cur});
+  // Restore
+  D.compounds[idx]={...h.snap};
+  save();render();rHist();
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────
+let currentPage='today';
+
+function changeDay(delta){
+  const d=new Date(viewDate+'T12:00:00');
+  d.setDate(d.getDate()+delta);
+  const newDate=localDateStr(d);
+  // Allow up to 7 days into the future
+  const maxDate=new Date();maxDate.setDate(maxDate.getDate()+7);
+  if(newDate>localDateStr(maxDate)) return;
+  viewDate=newDate;
+  updateDateNav();
+  rToday();
+}
+
+function updateDateNav(){
+  const isToday=viewDate===tod();
+  const isFuture=viewDate>tod();
+  const d=new Date(viewDate+'T12:00:00');
+  const label=isToday?'Today':d.toLocaleDateString([],{weekday:'long'});
+  const sub=isToday?'':d.toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('nav-date-label').textContent=label;
+  document.getElementById('nav-date-sub').textContent=sub;
+  // Disable next button only if 7 days ahead
+  const maxDate=new Date();maxDate.setDate(maxDate.getDate()+7);
+  document.getElementById('nav-next-btn').disabled=viewDate>=localDateStr(maxDate);
+  // Show banner for past or future
+  const banner=document.getElementById('past-banner');
+  if(isFuture){banner.classList.remove('hidden');banner.textContent='📅 Viewing a future day — pre-tick doses in advance';}
+  else if(!isToday){banner.classList.remove('hidden');banner.textContent='📅 Viewing a past day — tap to mark doses taken';}
+  else{banner.classList.add('hidden');}
+}
+let currentRecTab='stats';
+
+function setRecTab(tab){
+  currentRecTab=tab;
+  ['stats','hist','log'].forEach(t=>{
+    document.getElementById('rec-'+t).classList.toggle('hidden',t!==tab);
+    document.getElementById('rectab-'+t).classList.toggle('on',t===tab);
+  });
+  const subTitles={stats:'Statistics',hist:'Protocol History',log:'Dose Log'};
+  document.getElementById('hdrTitle').textContent=subTitles[tab]||'Records';
+  if(tab==='hist') rHist();
+  if(tab==='log') rLog();
+  if(tab==='stats') rStats();
+}
+
+function nav(pg,btn){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.add('hidden'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+pg).classList.remove('hidden');
+  btn.classList.add('on');
+  document.getElementById('scr').scrollTop=0;
+  currentPage=pg;
+  document.getElementById('fab').style.display=['records','calc','stack'].includes(pg)?'none':'flex';
+  if(pg==='today'){viewDate=tod();updateDateNav();}
+  if(pg==='records') setRecTab(currentRecTab);
+  if(pg==='calc') initCalc();
+  if(pg==='stack') rStack();
+  const titles={today:'Today',proto:'Protocol',inv:'Inventory',calc:'Calculator',stack:'Stack Summary',records:'Records'};
+  document.getElementById('hdrTitle').textContent=titles[pg]||pg;
+}
+function fabAction(){
+  if(currentPage==='inv') openAddInv();
+  else openLog(null);
+}
+function closeOv(id){document.getElementById(id).classList.add('hidden')}
+function openOv(id){document.getElementById(id).classList.remove('hidden')}
+
+// ─── COMPOUND FORM ───────────────────────────────────────────
+function buildColors(sel){
+  document.getElementById('f-colors').innerHTML=COLORS.map(c=>
+    `<div class="sw ${c===sel?'on':''}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`
+  ).join('');
+  fColor=sel;
+}
+function pickColor(c,el){
+  fColor=c;
+  document.querySelectorAll('#f-colors .sw').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function onFreq(){
+  // Days always visible — no hiding needed
+}
+function onDur(){
+  const v=document.getElementById('f-durtype').value;
+  document.getElementById('f-weeks-wrap').classList.toggle('hidden',v!=='weeks');
+  document.getElementById('f-end-wrap').classList.toggle('hidden',v!=='enddate');
+  updateEndPreview();
+}
+
+function calcEndFromWeeks(start,weeks){
+  if(!start||!weeks) return '';
+  const d=new Date(start+'T12:00:00');
+  if(isNaN(d)) return '';
+  d.setDate(d.getDate()+parseInt(weeks)*7);
+  return localDateStr(d);
+}
+function updateEndPreview(){
+  const el=document.getElementById('f-end-preview');
+  if(!el) return;
+  if(document.getElementById('f-durtype').value!=='weeks'){ el.textContent=''; return; }
+  const end=calcEndFromWeeks(document.getElementById('f-start').value,
+                             document.getElementById('f-weeks').value);
+  el.textContent = end
+    ? 'Ends: '+new Date(end+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'})
+    : '';
+}
+
+function getDays(){
+  return [...document.querySelectorAll('#f-days .day-chk-box.on')].map(el=>parseInt(el.dataset.d));
+}
+function setDays(days){
+  document.querySelectorAll('#f-days .day-chk-box').forEach(el=>{
+    el.classList.toggle('on',(days||[]).includes(parseInt(el.dataset.d)));
+  });
+}
+function togDayChk(item,d){
+  const box=item.querySelector('.day-chk-box');
+  box.classList.toggle('on');
+}
+function selectAllDays(){
+  document.querySelectorAll('#f-days .day-chk-box').forEach(el=>el.classList.add('on'));
+}
+function clearAllDays(){
+  document.querySelectorAll('#f-days .day-chk-box').forEach(el=>el.classList.remove('on'));
+}
+function selectWeekdays(){
+  document.querySelectorAll('#f-days .day-chk-box').forEach(el=>{
+    const d=parseInt(el.dataset.d);
+    el.classList.toggle('on',d>=1&&d<=5);
+  });
+}
+
+function checkNameHistory(){
+  const el=document.getElementById('f-name-history');
+  if(!el) return;
+  const q=(document.getElementById('f-name').value||'').trim().toLowerCase();
+  if(q.length<2){ el.innerHTML=''; return; }
+  const matches=(D.history||[]).filter(h=>{
+    const nm=(h.name||'').trim().toLowerCase();
+    return nm && (nm.indexOf(q)>-1 || q.indexOf(nm)>-1);
+  });
+  if(!matches.length){ el.innerHTML=''; return; }
+  const h=matches.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt))[0];
+  const p=h.snap||{};
+  const when=new Date(h.savedAt).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'});
+  const dur = p.durtype==='weeks'&&p.weeks ? p.weeks+' weeks'
+            : p.durtype==='enddate'&&p.end ? 'until '+p.end : 'Ongoing';
+  const row=(l,v)=>'<div><span style="color:var(--text2)">'+l+':</span> <strong>'+v+'</strong></div>';
+  el.innerHTML=
+    '<div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);'+
+    'border-radius:10px;padding:11px 12px;margin-top:8px">'+
+      '<div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">Used before</div>'+
+      '<div style="font-size:14px;font-weight:700;margin-bottom:2px">'+esc(h.name)+'</div>'+
+      '<div style="font-size:11px;color:var(--text2);margin-bottom:8px">Last used '+when+'</div>'+
+      '<div style="font-size:12px;line-height:1.7;margin-bottom:10px">'+
+        row('Dose',(p.dose||'-')+' '+(p.unit||''))+
+        row('Frequency',FL[p.freq]||p.freq||'-')+
+        row('Timing',p.time||'-')+
+        row('Duration',dur)+
+        row('Vial size',p.vialSize?(p.vialSize+' '+(p.vialUnit||'mg')):'-')+
+        row('BAC water',p.bacWater?(p.bacWater+' ml'):'-')+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+        '<button type="button" class="btn btn-p btn-sm" style="font-size:12px;padding:8px 10px;width:100%" '+
+        'onclick="applyNameHistory(&quot;'+h.id+'&quot;)">\u2705 Load Protocol</button>'+
+        '<button type="button" class="btn btn-s btn-sm" style="font-size:12px;padding:8px 10px;width:100%" '+
+        'onclick="dismissNameHistory()">Start Fresh</button>'+
+      '</div>'+
+    '</div>';
+}
+
+function dismissNameHistory(){
+  const el=document.getElementById('f-name-history');
+  if(el) el.innerHTML='';
+}
+
+function applyNameHistory(histId){
+  const h=(D.history||[]).find(x=>x.id===histId);
+  if(!h||!h.snap) return;
+  const p=h.snap;
+  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=(v===undefined||v===null)?'':v;};
+  set('f-dose',p.dose); set('f-unit',p.unit||'mg');
+  set('f-route',p.route||'SubQ Injection');
+  set('f-doseNotes',p.doseNotes);
+  set('f-freq',p.freq||'daily');
+  set('f-time',p.time||'AM');
+  set('f-clock',p.clock);
+  set('f-timingNotes',p.timingNotes);
+  set('f-cat',p.cat||'Peptide');
+  set('f-notes',p.notes);
+  set('f-cycle',p.cycle); set('f-pct',p.pct);
+  set('f-vialSize',p.vialSize); set('f-vialUnit',p.vialUnit||'mg');
+  set('f-bac',p.bacWater);
+  setDays(p.days||[]);
+  // Duration carries over; start date deliberately stays today - this is a new cycle.
+  if(p.durtype==='weeks' && p.weeks){ set('f-durtype','weeks'); set('f-weeks',p.weeks); }
+  else if(p.durtype==='enddate'){ set('f-durtype','weeks'); set('f-weeks','12'); }
+  else { set('f-durtype','ongoing'); }
+  if(p.color){ buildColors(p.color); document.getElementById('form-dot').style.background=p.color; }
+  onFreq(); onDur(); updateEndPreview();
+  dismissNameHistory();
+}
+
+function openAdd(){
+  document.getElementById('form-title').textContent='Add Compound';
+  document.getElementById('form-name-wrap').classList.remove('hidden');
+  document.getElementById('f-del-wrap').classList.add('hidden');
+  document.getElementById('f-id').value='';
+  document.getElementById('f-name').value='';
+  const nh=document.getElementById('f-name-history');
+  if(nh) nh.innerHTML='';
+  document.getElementById('f-dose').value='';
+  document.getElementById('f-doseNotes').value='';
+  document.getElementById('f-timingNotes').value='';
+  document.getElementById('f-notes').value='';
+  document.getElementById('f-cycle').value='';
+  document.getElementById('f-pct').value='';
+  document.getElementById('f-start').value=tod();
+  document.getElementById('f-weeks').value='12';
+  document.getElementById('f-end').value='';
+  document.getElementById('f-clock').value='';
+  document.getElementById('f-vialSize').value='';
+  document.getElementById('f-vialUnit').value='mg';
+  document.getElementById('f-bac').value='';
+  document.getElementById('f-freq').value='daily';
+  document.getElementById('f-unit').value='mg';
+  document.getElementById('f-route').value='SubQ Injection';
+  document.getElementById('f-time').value='AM';
+  document.getElementById('f-durtype').value='weeks';
+  document.getElementById('f-cat').value='Peptide';
+  document.getElementById('f-active').checked=true;
+  buildColors(COLORS[Math.floor(Math.random()*COLORS.length)]);
+  selectAllDays();
+  onFreq();onDur();
+  // Set dot
+  document.getElementById('form-dot').style.background=fColor;
+  openOv('ov-form');
+}
+
+function openEdit(pid){
+  const c=D.compounds.find(x=>x.id===pid);if(!c)return;
+  document.getElementById('form-title').textContent=c.name;
+  document.getElementById('form-name-wrap').classList.add('hidden');
+  document.getElementById('f-del-wrap').classList.remove('hidden');
+  document.getElementById('f-id').value=pid;
+  document.getElementById('f-dose').value=c.dose;
+  document.getElementById('f-unit').value=c.unit;
+  document.getElementById('f-route').value=c.route;
+  document.getElementById('f-doseNotes').value=c.doseNotes||'';
+  document.getElementById('f-freq').value=c.freq;
+  document.getElementById('f-time').value=c.time;
+  document.getElementById('f-clock').value=c.clock||'';
+  document.getElementById('f-timingNotes').value=c.timingNotes||'';
+  document.getElementById('f-start').value=c.start||'';
+  document.getElementById('f-durtype').value=c.durtype||'ongoing';
+  document.getElementById('f-weeks').value=c.weeks||'';
+  document.getElementById('f-end').value=c.end||'';
+  document.getElementById('f-cycle').value=c.cycle||'';
+  document.getElementById('f-pct').value=c.pct||'';
+  document.getElementById('f-cat').value=c.cat||'Peptide';
+  document.getElementById('f-notes').value=c.notes||'';
+  document.getElementById('f-vialSize').value=c.vialSize||'';
+  document.getElementById('f-vialUnit').value=c.vialUnit||'mg';
+  document.getElementById('f-bac').value=c.bacWater||'';
+  document.getElementById('f-active').checked=c.active;
+  buildColors(c.color);
+  document.getElementById('form-dot').style.background=c.color;
+  setDays(c.days||[]);
+  onFreq();onDur();
+  updateEndPreview();
+  openOv('ov-form');
+}
+
+function saveForm(){
+  const id=document.getElementById('f-id').value;
+  const freq=document.getElementById('f-freq').value;
+  const days=getDays(); // empty array means every day
+  const fDurtype=document.getElementById('f-durtype').value;
+  const fStart=document.getElementById('f-start').value;
+  const fWeeks=document.getElementById('f-weeks').value;
+  const fEnd=fDurtype==='weeks' ? calcEndFromWeeks(fStart,fWeeks)
+                                : document.getElementById('f-end').value;
+
+  if(id){
+    const idx=D.compounds.findIndex(x=>x.id===id);if(idx===-1)return;
+    // Snapshot current protocol before overwriting
+    const snap={...D.compounds[idx]};
+    if(!D.history) D.history=[];
+    D.history.push({
+      id:uid(),
+      cid:id,
+      name:snap.name,
+      savedAt:new Date().toISOString(),
+      snap
+    });
+    D.compounds[idx]={...D.compounds[idx],
+      dose:parseFloat(document.getElementById('f-dose').value)||D.compounds[idx].dose,
+      unit:document.getElementById('f-unit').value,
+      route:document.getElementById('f-route').value,
+      doseNotes:document.getElementById('f-doseNotes').value,
+      freq,days,
+      time:document.getElementById('f-time').value,
+      clock:document.getElementById('f-clock').value,
+      timingNotes:document.getElementById('f-timingNotes').value,
+      start:fStart,
+      durtype:fDurtype,
+      weeks:fWeeks,
+      end:fEnd,
+      cycle:document.getElementById('f-cycle').value,
+      pct:document.getElementById('f-pct').value,
+      cat:document.getElementById('f-cat').value,
+      notes:document.getElementById('f-notes').value,
+      vialSize:document.getElementById('f-vialSize').value,
+      vialUnit:document.getElementById('f-vialUnit').value,
+      bacWater:document.getElementById('f-bac').value,
+      color:fColor,
+      active:document.getElementById('f-active').checked,
+    };
+  } else {
+    const name=document.getElementById('f-name').value.trim();
+    if(!name){ptAlert('Please enter a name.');return;}
+    D.compounds.push({
+      id:uid(),name,
+      dose:parseFloat(document.getElementById('f-dose').value)||0,
+      unit:document.getElementById('f-unit').value,
+      route:document.getElementById('f-route').value,
+      doseNotes:document.getElementById('f-doseNotes').value,
+      freq,days,
+      time:document.getElementById('f-time').value,
+      clock:document.getElementById('f-clock').value,
+      timingNotes:document.getElementById('f-timingNotes').value,
+      start:fStart,
+      durtype:fDurtype,
+      weeks:fWeeks,
+      end:fEnd,
+      cycle:document.getElementById('f-cycle').value,
+      pct:document.getElementById('f-pct').value,
+      cat:document.getElementById('f-cat').value,
+      notes:document.getElementById('f-notes').value,
+      vialSize:document.getElementById('f-vialSize').value,
+      vialUnit:document.getElementById('f-vialUnit').value,
+      bacWater:document.getElementById('f-bac').value,
+      color:fColor,active:true,
+    });
+  }
+  save();render();closeOv('ov-form');
+}
+
+async function delCompound(){
+  const id=document.getElementById('f-id').value;
+  if(!(await ptConfirm('Delete this compound? Logs will remain.'))) return;
+  D.compounds=D.compounds.filter(x=>x.id!==id);
+  save();render();closeOv('ov-form');
+}
+
+// ─── LOG DOSE ────────────────────────────────────────────────
+function openLog(pid){
+  document.getElementById('l-pid').innerHTML=D.compounds.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  if(pid) document.getElementById('l-pid').value=pid;
+  prefillLog();
+  const now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+  document.getElementById('l-time').value=localDateTimeStr(now);
+  document.getElementById('l-notes').value='';
+  fSite='';
+  document.querySelectorAll('.site').forEach(s=>s.classList.remove('on'));
+  openOv('ov-log');
+}
+function prefillLog(){
+  const c=D.compounds.find(x=>x.id===document.getElementById('l-pid').value);
+  if(c){document.getElementById('l-dose').value=c.dose;document.getElementById('l-unit').value=c.unit;}
+}
+function selSite(el,s){document.querySelectorAll('.site').forEach(x=>x.classList.remove('on'));el.classList.add('on');fSite=s}
+function saveLog(){
+  const pid=document.getElementById('l-pid').value;
+  const dose=document.getElementById('l-dose').value;
+  if(!pid||!dose){ptAlert('Select a compound and enter a dose.');return;}
+  D.logs.push({id:uid(),pid,dose,unit:document.getElementById('l-unit').value,
+    site:fSite,t:document.getElementById('l-time').value||new Date().toISOString(),
+    notes:document.getElementById('l-notes').value});
+  save();render();closeOv('ov-log');
+}
+
+// ─── INVENTORY ───────────────────────────────────────────────
+function openAddInv(){
+  document.getElementById('inv-title').textContent='Add Stock';
+  document.getElementById('iv-pid').innerHTML=D.compounds.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  ['iv-vials','iv-qty','iv-label','iv-bac','iv-exp'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('iv-id').value='';
+  document.getElementById('iv-del-wrap').classList.add('hidden');
+  document.getElementById('iv-purchased').value=tod();
+  openOv('ov-inv');
+}
+function openEditInv(pid, entryId, e){
+  if(e) e.stopPropagation();
+  const entries=D.inventory.filter(x=>x.pid===pid);
+  if(!entries.length)return;
+  // If a specific entry ID is provided, edit that; otherwise edit the first
+  const v=entryId?entries.find(x=>x.id===entryId)||entries[0]:entries[0];
+  document.getElementById('inv-title').textContent='Edit Stock Entry';
+  document.getElementById('iv-pid').innerHTML=D.compounds.map(c=>`<option value="${c.id}" ${c.id===pid?'selected':''}>${esc(c.name)}</option>`).join('');
+  document.getElementById('iv-label').value=v.label||'';
+  document.getElementById('iv-vials').value=v.vials||0;
+  document.getElementById('iv-qty').value=v.qty||0;
+  document.getElementById('iv-unit').value=v.unit||'mg';
+  document.getElementById('iv-purchased').value=v.purchased||'';
+  document.getElementById('iv-bac').value=v.bac||'';
+  document.getElementById('iv-exp').value=v.exp||'';
+  document.getElementById('iv-id').value=v.id;
+  document.getElementById('iv-del-wrap').classList.remove('hidden');
+  openOv('ov-inv');
+}
+function saveInv(){
+  const pid=document.getElementById('iv-pid').value;
+  const label=document.getElementById('iv-label').value.trim();
+  const vials=parseFloat(document.getElementById('iv-vials').value)||0;
+  const qty=parseFloat(document.getElementById('iv-qty').value)||0;
+  const unit=document.getElementById('iv-unit').value;
+  const purchased=document.getElementById('iv-purchased').value;
+  const bac=parseFloat(document.getElementById('iv-bac').value)||0;
+  const exp=document.getElementById('iv-exp').value;
+  const existingId=document.getElementById('iv-id').value;
+  if(existingId){
+    const idx=D.inventory.findIndex(x=>x.id===existingId);
+    if(idx>-1) D.inventory[idx]={...D.inventory[idx],pid,label,vials,qty,unit,purchased,bac,exp};
+  } else {
+    D.inventory.push({id:uid(),pid,label,vials,qty,unit,purchased,bac,exp});
+  }
+  save();render();closeOv('ov-inv');
+}
+async function delInv(){
+  const id=document.getElementById('iv-id').value;
+  if(!(await ptConfirm('Remove this stock entry?'))) return;
+  D.inventory=D.inventory.filter(x=>x.id!==id);
+  save();render();closeOv('ov-inv');
+}
+
+// ─── INIT ────────────────────────────────────────────────────
+function defaultInventory(){
+  // Map compound names to IDs
+  function pid(name){
+    const c=D.compounds.find(x=>x.name===name||x.name.toLowerCase()===name.toLowerCase());
+    return c?c.id:'';
+  }
+  return [
+    {id:uid(),pid:pid('BPC-157'),        vials:21, qty:10,   unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('Retatutride'),    vials:11, qty:20,   unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('TB-500'),         vials:10, qty:10,   unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('NAD+'),           vials:8,  qty:1000, unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('MOTSc'),          vials:10, qty:40,   unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('Selank'),         vials:1,  qty:10,   unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('GHK-Cu'),         vials:13, qty:100,  unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('Glutathione'),    vials:0,  qty:1500, unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('KPV'),            vials:0,  qty:10,   unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('Epithalon'),      vials:0,  qty:50,   unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('Test-E'),         vials:2,  qty:250,  unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('Deca'),           vials:1,  qty:250,  unit:'mg', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('Human Growth Hormone'), vials:3, qty:16, unit:'IU', purchased:'2026-06-21'},
+    {id:uid(),pid:pid('HCG'),            vials:8,  qty:10000,unit:'mg', purchased:'2026-06-21'},
+  ].filter(x=>x.pid); // skip any that didn't match
+}
+
+// ─── CALCULATOR ──────────────────────────────────────────────
+let lastEdited='';
+
+function updatePinLabel(){}
+
+let calcModeActive='peptide';
+function setCalcMode(mode){
+  calcModeActive=mode;
+  document.getElementById('calc-peptide').style.display=mode==='peptide'?'block':'none';
+  document.getElementById('calc-oil').style.display=mode==='oil'?'block':'none';
+  document.getElementById('cmode-peptide').classList.toggle('active',mode==='peptide');
+  document.getElementById('cmode-oil').classList.toggle('active',mode==='oil');
+  if(mode==='oil'){renderOilCompounds();calcOil();}
+  if(mode==='peptide'){drawSyringe(currentUnits());}
+}
+
+let oilCompounds=[];
+let oilSyringeMaxMl=1.0;
+let oilSyringeType='im'; // 'insulin' | 'im' - global (v1.86 scope fix)
+const OIL_COLORS=['rgba(239,68,68,0.75)','rgba(96,165,250,0.75)','rgba(251,146,60,0.75)','rgba(163,230,53,0.75)','rgba(168,85,247,0.75)'];
+
+function addOilCompound(){
+  oilCompounds.push({id:uid(),name:'',conc:'',unit:'mg',dose:'',doseUnit:'mg'});
+  renderOilCompounds();
+  populateSavedDoseSelect();
+  populateSavedStackSelect();
+}
+function removeOilCompound(id){
+  oilCompounds=oilCompounds.filter(c=>c.id!==id);
+  renderOilCompounds();calcOil();
+}
+function renderOilCompounds(){
+  const el=document.getElementById('oil-compounds-list');
+  if(!oilCompounds.length){
+    el.innerHTML='<div style="text-align:center;color:var(--text2);font-size:13px;padding:12px 0;margin-bottom:12px">Tap + Add Compound to begin</div>';
+    return;
+  }
+  el.innerHTML=oilCompounds.map((c,i)=>`
+    <div class="calc-card" style="margin-bottom:10px;border-left:3px solid ${OIL_COLORS[i%5]}">
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+        <input class="fi" style="flex:1;padding:8px 10px;font-size:14px;font-weight:600" placeholder="Compound name" value="${esc(c.name)}"
+          oninput="oilCompounds[${i}].name=this.value;calcOil()">
+        <button onclick="removeOilCompound('${c.id}')" style="background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:var(--danger);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;flex-shrink:0">✕</button>
+      </div>
+      <div class="fr">
+        <div><label class="fl">Concentration (per ml)</label>
+          <div style="display:flex;gap:6px">
+            <input class="fi" type="number" step="0.1" placeholder="e.g. 250" value="${c.conc}"
+              oninput="oilCompounds[${i}].conc=this.value;calcOil()">
+            <select class="fs" style="width:70px" onchange="oilCompounds[${i}].unit=this.value;calcOil()">
+              <option ${c.unit==='mg'?'selected':''}>mg</option><option ${c.unit==='mcg'?'selected':''}>mcg</option>
+            </select>
+          </div>
+        </div>
+        <div><label class="fl">Desired Dose</label>
+          <div style="display:flex;gap:6px">
+            <input class="fi" type="number" step="0.1" placeholder="e.g. 125" value="${c.dose}"
+              oninput="oilCompounds[${i}].dose=this.value;calcOil()">
+            <select class="fs" style="width:70px" onchange="oilCompounds[${i}].doseUnit=this.value;calcOil()">
+              <option ${c.doseUnit==='mg'?'selected':''}>mg</option><option ${c.doseUnit==='mcg'?'selected':''}>mcg</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="oil-result-${c.id}" style="font-size:12px;color:rgba(255,255,255,.6);margin-top:8px"></div>
+    </div>`).join('');
+}
+function setOilSyringe(ml,btn){
+  oilSyringeMaxMl=ml;
+  document.querySelectorAll('#calc-oil .syringe-size-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');calcOil();
+}
+function toMgNorm(amount,unit){return unit==='mcg'?amount/1000:amount;}
+function calcOil(){try{
+  const syrCard=document.getElementById('oil-syringe-card');
+  if(syrCard) syrCard.style.display='block';
+  if(!oilCompounds.length){
+    const rc=document.getElementById('oil-result-card');if(rc)rc.style.display='none';
+    drawOilSyringe([],0);
+    return;
+  }
+  let totalVol=0;let breakdown=[];let anyValid=false;
+  oilCompounds.forEach((c,i)=>{
+    const conc=parseFloat(c.conc)||0;const dose=parseFloat(c.dose)||0;
+    const el=document.getElementById('oil-result-'+c.id);
+    if(!conc||!dose){if(el)el.textContent='';return;}
+    const vol=toMgNorm(dose,c.doseUnit)/toMgNorm(conc,c.unit);
+    totalVol+=vol;anyValid=true;
+    if(el)el.textContent=`→ ${vol.toFixed(3)} ml for ${dose} ${c.doseUnit}`;
+    breakdown.push({name:c.name||'Compound '+(i+1),vol,color:OIL_COLORS[i%5]});
+  });
+  const rc=document.getElementById('oil-result-card');
+  if(!anyValid){if(rc)rc.style.display='none';drawOilSyringe([],0);return;}
+  if(rc)rc.style.display='block';
+  const tv=document.getElementById('oil-total-vol');if(tv)tv.textContent=totalVol.toFixed(3)+' ml';
+  // breakdown shown in draw volumes div
+  drawOilSyringe(breakdown,totalVol);
+}catch(e){console.error("calcOil error:",e.message,e.stack);}
+}
+// ─── SAVED DOSES / STACKS ────────────────────────────────────
+function getSavedDoses(){ try{return JSON.parse(localStorage.getItem('saved_doses')||'[]');}catch(e){return[];} }
+function putSavedDoses(arr){ safeSet('saved_doses', JSON.stringify(arr)); }
+function getSavedStacks(){ try{return JSON.parse(localStorage.getItem('saved_stacks')||'[]');}catch(e){return[];} }
+function putSavedStacks(arr){ safeSet('saved_stacks', JSON.stringify(arr)); }
+
+function populateSavedDoseSelect(){try{
+  const sel=document.getElementById('pep-saved-select');
+  const saved=getSavedDoses();
+  sel.innerHTML='<option value="">— Recall a saved dose —</option>'+
+    saved.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+}catch(e){console.error("function populateSavedDoseSele error:",e.message);}
+}
+function populateSavedStackSelect(){try{
+  const sel=document.getElementById('oil-saved-select');
+  const saved=getSavedStacks();
+  sel.innerHTML='<option value="">— Recall a saved stack —</option>'+
+    saved.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+}catch(e){console.error("function populateSavedStackSel error:",e.message);}
+}
+
+async function saveDose(){
+  const name = await ptPrompt('Name this dose (e.g. "BPC 500mcg"):');
+  if(!name || !name.trim()) return;
+  const dose = {
+    name:name.trim(), cid:document.getElementById('c-compound').value || '',
+    vialAmt:document.getElementById('c-vialAmt').value,
+    vialUnit:document.getElementById('c-vialUnit').value,
+    bac:document.getElementById('c-bac').value,
+    dose:document.getElementById('c-dose').value,
+    doseUnit:document.getElementById('c-doseUnit').value,
+    vol:document.getElementById('c-vol').value,
+  };
+  const saved=getSavedDoses();
+  const i=saved.findIndex(x=>x.name===dose.name);
+  if(i>-1) saved[i]=dose; else saved.push(dose);
+  putSavedDoses(saved); populateSavedDoseSelect();
+  document.getElementById('pep-saved-select').value=saved.findIndex(x=>x.name===dose.name);
+  ptAlert('"'+dose.name+'" saved. You can recall this or push it to Protocol.');
+}
+
+function loadSavedDose(){
+  const raw=document.getElementById('pep-saved-select').value;
+  document.getElementById('push-to-proto-wrap')?.remove();
+  if(raw==='') return;
+  const idx=parseInt(raw); const d=getSavedDoses()[idx];
+  if(!d) return;
+  if(d.vialAmt)  document.getElementById('c-vialAmt').value=d.vialAmt;
+  if(d.vialUnit) document.getElementById('c-vialUnit').value=d.vialUnit;
+  if(d.bac)      document.getElementById('c-bac').value=d.bac;
+  if(d.dose)     document.getElementById('c-dose').value=d.dose;
+  if(d.doseUnit) document.getElementById('c-doseUnit').value=d.doseUnit;
+  if(d.vol)      document.getElementById('c-vol').value=d.vol;
+  if(d.cid)      document.getElementById('c-compound').value=d.cid;
+  lastEdited='dose'; updateConcBar(); calcFromDose();
+  showPushToProtocol(idx);
+}
+
+function showPushToProtocol(savedIdx){
+  document.getElementById('push-to-proto-wrap')?.remove();
+  const d=getSavedDoses()[savedIdx]; if(!d) return;
+  const w=document.createElement('div');
+  w.id='push-to-proto-wrap'; w.className='calc-card';
+  w.style.cssText='background:#0044CC;border:1.5px solid rgba(255,255,255,.4)';
+  w.innerHTML='<div class="calc-section-lbl">Push to Protocol</div>'+
+    '<p style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:10px">'+
+    'Save this dose calculation back to a compound\'s protocol settings.</p>'+
+    '<select class="fs" id="push-proto-target" style="margin-bottom:10px">'+
+    '<option value="">\u2014 Select compound \u2014</option>'+
+    D.compounds.map(c=>'<option value="'+c.id+'"'+(c.id===d.cid?' selected':'')+'>'+esc(c.name)+'</option>').join('')+
+    '</select><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+    '<button class="btn btn-s btn-sm" onclick="pushDoseToProtocol('+savedIdx+')" style="background:#fff;color:#0033A0;font-weight:700">\u2B06 Push to Protocol</button>'+
+    '<button class="btn btn-s btn-sm" onclick="deleteSavedDose('+savedIdx+')" style="background:rgba(239,68,68,.3);border-color:rgba(239,68,68,.5)">\u{1F5D1} Delete</button></div>';
+  const card=document.getElementById('pep-saved-select')?.closest('.calc-card');
+  if(card) card.after(w);
+}
+
+async function pushDoseToProtocol(savedIdx){
+  const d=getSavedDoses()[savedIdx]; if(!d) return;
+  const cid=document.getElementById('push-proto-target').value;
+  if(!cid){ ptAlert('Please select a compound.'); return; }
+  const idx=D.compounds.findIndex(c=>c.id===cid);
+  if(idx===-1){ ptAlert('Compound not found.'); return; }
+  const c=D.compounds[idx];
+  if(!await ptConfirm('Update '+esc(c.name)+' protocol with:\n\u2022 Dose: '+d.dose+' '+d.doseUnit+
+    '\n\u2022 Vial: '+d.vialAmt+' '+d.vialUnit+'\n\u2022 BAC Water: '+d.bac+' ml\n\nThis will overwrite the current settings.')) return;
+  if(!D.history) D.history=[];
+  D.history.push({id:uid(),cid,name:c.name,savedAt:new Date().toISOString(),snap:{...c}});
+  D.compounds[idx]={...c, dose:parseFloat(d.dose)||c.dose, unit:d.doseUnit||c.unit,
+    vialSize:d.vialAmt||c.vialSize, vialUnit:d.vialUnit||c.vialUnit, bacWater:d.bac||c.bacWater};
+  save(); render();
+  document.getElementById('push-to-proto-wrap')?.remove();
+  ptAlert('\u2705 '+esc(c.name)+' protocol updated!');
+}
+
+async function deleteSavedDose(savedIdx){
+  const saved=getSavedDoses(); const d=saved[savedIdx]; if(!d) return;
+  if(!(await ptConfirm('Delete "'+d.name+'"?'))) return;
+  saved.splice(savedIdx,1); putSavedDoses(saved); populateSavedDoseSelect();
+  document.getElementById('push-to-proto-wrap')?.remove();
+}
+
+async function saveStack(){
+  if(!oilCompounds.length){ ptAlert('Add at least one compound first.'); return; }
+  const name=await ptPrompt('Name this stack (e.g. "Test + Deca"):');
+  if(!name || !name.trim()) return;
+  const st={name:name.trim(), compounds:[...oilCompounds], syringeSize:oilSyringeMaxMl};
+  const saved=getSavedStacks(); const i=saved.findIndex(x=>x.name===st.name);
+  if(i>-1) saved[i]=st; else saved.push(st);
+  putSavedStacks(saved); populateSavedStackSelect();
+  ptAlert('"'+st.name+'" saved.');
+}
+
+function loadSavedStack(){
+  const raw=document.getElementById('oil-saved-select').value;
+  if(raw==='') return;
+  const st=getSavedStacks()[parseInt(raw)]; if(!st) return;
+  oilCompounds=st.compounds.map(c=>({...c,id:uid()}));
+  oilSyringeMaxMl=st.syringeSize||1.0;
+  renderOilCompounds(); calcOil();
+}
+
+function drawOilSyringe(compounds,totalMl){try{
+  const maxMl=oilSyringeMaxMl;const barrelBot=426;const barrelH=376;
+  const card=document.getElementById('oil-syringe-card');
+  if(card) card.style.display='block';
+  const stack=document.getElementById('oil-fluid-stack');
+  if(!stack) return;
+  let y=barrelBot;let html='';
+  compounds.forEach(c=>{
+    const h=Math.round(Math.min(1,c.vol/maxMl)*barrelH);
+    y-=h;html+=`<rect x="124" y="${y}" width="72" height="${h}" fill="${c.color}" clip-path="url(#oil-barrel-clip)"/>`;
+  });
+  stack.innerHTML=html;
+  const totalH=Math.round(Math.min(1,totalMl/maxMl)*barrelH);
+  const fillY=barrelBot-totalH;
+  const disc=document.getElementById('oil-disc');
+  if(disc) disc.setAttribute('y',fillY-12);
+  const rod=document.getElementById('oil-plunger-rod');
+  if(rod) rod.setAttribute('height',Math.max(0,fillY-50));
+  let ticks='';
+  if(oilSyringeType==='insulin'){
+    const maxUnits=maxMl*100;
+    const uStep=maxMl<=0.5?5:10;
+    for(let u=0;u<=maxUnits+0.001;u+=uStep){
+      const ty=barrelBot-Math.round((u/maxUnits)*barrelH);
+      const maj=u%(uStep*2)===0;
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="rgba(255,255,255,0.4)" stroke-width="${maj?1.5:1}"/>`;
+      if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${u}</text>`;
+    }
+  } else {
+    const step=0.1;
+    for(let ml=0;ml<=maxMl+0.001;ml+=step){
+      const mlR=Math.round(ml*10)/10;
+      const ty=barrelBot-Math.round((mlR/maxMl)*barrelH);
+      const maj=Math.abs(Math.round(mlR*10)%5)===0;
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="rgba(255,255,255,0.4)" stroke-width="${maj?1.5:1}"/>`;
+      if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${mlR.toFixed(1)}</text>`;
+    }
+  }
+  if(totalMl>0)ticks+=`<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+  const tickEl=document.getElementById('oil-ticks');
+  if(tickEl) tickEl.innerHTML=ticks;
+  const lbl=document.getElementById('oil-vol-label');
+  if(lbl){
+    if(totalMl<=0) lbl.textContent='— ml';
+    else if(oilSyringeType==='insulin') lbl.textContent=(totalMl*100).toFixed(0)+' units ('+totalMl.toFixed(3)+' ml)';
+    else lbl.textContent=totalMl.toFixed(3)+' ml';
+  }
+}catch(e){console.error("drawOilSyringe error:",e.message,e.stack);}
+}
+
+
+// ─── SYRINGE VISUALISER ──────────────────────────────────────
+let syringeMaxMl = 0.3;
+
+let syringeType = 'insulin'; // 'insulin' or 'im'
+
+function setSyringeSize(ml, type, btn){
+  syringeMaxMl = ml;
+  syringeType = type;
+  document.querySelectorAll('#syringe-text-display .syringe-size-btn, .syringe-wrap:not(#oil-syringe-card) .syringe-size-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  drawSyringe(currentUnits());
+}
+
+function currentUnits(){
+  return parseFloat(document.getElementById('c-vol').value)||0;
+}
+
+function drawSyringe(units){
+  const maxUnits=syringeMaxMl*100;
+  const barrelTop=50,barrelH=376,barrelBot=426;
+  const u=Math.min(Math.max(units||0,0),maxUnits);
+  const pct=maxUnits>0?u/maxUnits:0;
+  const fillH=Math.round(pct*barrelH);
+  const fillY=barrelBot-fillH;
+  const fluid=document.getElementById('syr-fluid');
+  if(fluid){fluid.setAttribute('y',fillY);fluid.setAttribute('height',fillH);fluid.setAttribute('rx',fillH>6?4:0);}
+  const disc=document.getElementById('syr-disc');
+  if(disc) disc.setAttribute('y',fillY-12);
+  const rod=document.getElementById('syr-plunger-rod');
+  if(rod) rod.setAttribute('height',Math.max(0,fillY-50));
+  const tickGroup=document.getElementById('syr-ticks');
+  if(tickGroup){
+    const step=syringeType==='im'?(syringeMaxMl<=1.0?10:syringeMaxMl<=2.0?20:30):(syringeMaxMl<=0.3?5:syringeMaxMl<=0.5?5:10);
+    let ticks='';
+    for(let tu=0;tu<=maxUnits;tu+=step){
+      const ty=barrelBot-Math.round((tu/maxUnits)*barrelH);
+      const isMajor=tu%(step*2)===0;
+      const tickW=isMajor?18:10;
+      const lbl=isMajor?(syringeType==='im'?(tu*0.01).toFixed(1)+'ml':tu.toString()):'';
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+tickW}" y2="${ty}" stroke="rgba(255,255,255,0.5)" stroke-width="${isMajor?1.5:1}"/>`;
+      if(lbl)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.55)" text-anchor="start">${lbl}</text>`;
+      ticks+=`<line x1="122" y1="${ty}" x2="${122-tickW/2}" y2="${ty}" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>`;
+    }
+    if(u>0)ticks+=`<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    tickGroup.innerHTML=ticks;
+  }
+  const ulbl=document.getElementById('syr-units-label');
+  const mlbl=document.getElementById('syr-ml-label');
+  if(syringeType==='im'){
+    if(ulbl)ulbl.textContent=u>0?(u*0.01).toFixed(2)+' ml':'— ml';
+    if(mlbl)mlbl.textContent=u>0?u.toFixed(0)+' units':'— units';
+  } else {
+    if(ulbl)ulbl.textContent=u>0?u.toFixed(1)+' units':'— units';
+    if(mlbl)mlbl.textContent=u>0?(u*0.01).toFixed(3)+' ml':'— ml';
+  }
+}
+
+function resetCalc(){
+  ['c-vialAmt','c-bac','c-dose','c-vol'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-compound').value='';
+  document.getElementById('c-doseUnit').value='mcg';
+  document.getElementById('c-vialUnit').value='mg';
+  document.getElementById('calc-result').classList.add('hidden');
+  lastEdited='';
+  updateConcBar();
+  updateQuickRef();
+  drawSyringe(0);
+  renderOilCompounds();
+}
+
+function initCalc(){
+  const sel=document.getElementById('c-compound');
+  sel.innerHTML='<option value="">— Select compound to auto-fill —</option>'+
+    D.compounds.map(c=>`<option value="${c.id}">${esc(c.name)} (${c.dose||'?'} ${c.unit})</option>`).join('');
+  updateConcBar();
+  updateQuickRef();
+  drawSyringe(0);
+  populateSavedDoseSelect();
+  populateSavedStackSelect();
+}
+
+function loadFromProtocol(){
+  const pid=document.getElementById('c-compound').value;
+  if(!pid) return;
+  const c=D.compounds.find(x=>x.id===pid);
+  if(!c) return;
+
+  // Oil-based compounds are pre-mixed - they belong in the oil calculator
+  if(isOilBased(c)){
+    const du=(c.unit==='mcg')?'mcg':'mg';
+    const vu=(c.vialUnit==='mcg')?'mcg':'mg';
+    oilCompounds=[{id:uid(),name:c.name,conc:c.vialSize||'',unit:vu,dose:c.dose||'',doseUnit:du}];
+    setCalcMode('oil'); renderOilCompounds(); calcOil();
+    return;
+  }
+
+  document.getElementById('c-dose').value=c.dose||'';
+  document.getElementById('c-doseUnit').value=c.unit||'mcg';
+  if(c.vialSize){
+    document.getElementById('c-vialAmt').value=c.vialSize;
+    document.getElementById('c-vialUnit').value=c.vialUnit||'mg';
+  } else {
+    const inv=D.inventory.filter(x=>x.pid===pid);
+    if(inv.length){document.getElementById('c-vialAmt').value=inv[0].qty||'';document.getElementById('c-vialUnit').value=inv[0].unit||'mg';}
+  }
+  // BAC water: compound field first, then inventory
+  if(c.bacWater){
+    document.getElementById('c-bac').value=c.bacWater;
+  } else {
+    const inv2=D.inventory.filter(x=>x.pid===pid&&x.bac);
+    if(inv2.length) document.getElementById('c-bac').value=inv2[0].bac;
+  }
+  lastEdited='dose';updateConcBar();calcFromDose();
+}
+
+// Unit conversion: return value in mcg
+function toMcg(amount,unit){
+  if(unit==='mg') return amount*1000;
+  if(unit==='IU') return amount; // keep IU as-is for ratio
+  return amount; // mcg
+}
+
+function getConc(){
+  // Returns concentration in (vialUnit per ml), or null
+  const vialAmt=parseFloat(document.getElementById('c-vialAmt').value);
+  const bac=parseFloat(document.getElementById('c-bac').value);
+  if(!vialAmt||!bac) return null;
+  return vialAmt/bac; // e.g. 5mg / 2ml = 2.5 mg/ml
+}
+
+function updateConcBar(){try{
+  const el=document.getElementById('c-conc-display');
+  const conc=getConc();
+  const vialUnit=document.getElementById('c-vialUnit').value;
+  const bac=parseFloat(document.getElementById('c-bac').value)||0;
+  if(!conc){
+    el.textContent='Enter A and B to see concentration';
+    return;
+  }
+  el.textContent=`Concentration: ${conc.toFixed(4)} ${vialUnit}/ml  ·  ${bac} ml total volume`;
+}catch(e){console.error("function updateConcBar(){ error:",e.message);}
+}
+
+function setOilSyrSize(ml, type, btn){
+  oilSyringeMaxMl = ml;
+  oilSyringeType  = type || 'im';
+  document.querySelectorAll('#oil-syringe-card .syringe-size-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  calcOil();
+}
+
+function calcBoth(){
+  updateConcBar();
+  updateQuickRef();
+  // Recalculate whichever of C/D was last edited
+  if(lastEdited==='vol') calcFromVol();
+  else calcFromDose();
+}
+
+function calcFromDose(){
+  lastEdited='dose';
+  updateConcBar();
+  updateQuickRef();
+  const conc=getConc();
+  const doseAmt=parseFloat(document.getElementById('c-dose').value);
+  const doseUnit=document.getElementById('c-doseUnit').value;
+  const vialUnit=document.getElementById('c-vialUnit').value;
+  const resultEl=document.getElementById('calc-result');
+  // Defensive validation via the pure calculator (unit-family safe, no NaN/Inf).
+  // conc is already per-ml (getConc folds in BAC water), so bac=1 here.
+  const r=reconstitutionCalc({vialAmt:conc, vialUnit, bac:1, dose:doseAmt, doseUnit});
+  if(!r.ok){ resultEl.classList.add('hidden'); return; }
+  const volMl=r.ml;
+  const units=volMl*100; // U-100
+  document.getElementById('c-vol').value=units.toFixed(1);
+  drawSyringe(units);
+  document.getElementById('calc-result-lbl').textContent='Draw this amount (D)';
+  document.getElementById('calc-result-val').textContent=units.toFixed(1)+' units';
+  document.getElementById('calc-result-sub').textContent=`(${volMl.toFixed(3)} ml on a U-100 syringe)`;
+  resultEl.classList.remove('hidden');
+}
+
+function calcFromVol(){
+  lastEdited='vol';
+  updateConcBar();
+  updateQuickRef();
+  const conc=getConc();
+  const units=parseFloat(document.getElementById('c-vol').value); // D is in U-100 units
+  const vialUnit=document.getElementById('c-vialUnit').value;
+  const resultEl=document.getElementById('calc-result');
+  if(!conc||!units){resultEl.classList.add('hidden');return;}
+
+  const volMl=units*0.01; // convert units to ml
+  const doseInVialUnit=volMl*conc;
+  let displayDose, displayUnit;
+  const doseInMcg=toMcg(doseInVialUnit,vialUnit);
+  if(doseInMcg>=1000){displayDose=(doseInMcg/1000).toFixed(3);displayUnit='mg';}
+  else{displayDose=doseInMcg.toFixed(1);displayUnit='mcg';}
+
+  // Populate C field
+  document.getElementById('c-dose').value=displayDose;
+  document.getElementById('c-doseUnit').value=displayUnit;
+  drawSyringe(volMl*100);
+
+  // Show result
+  document.getElementById('calc-result-lbl').textContent='Your dose (C)';
+  document.getElementById('calc-result-val').textContent=displayDose+' '+displayUnit;
+  document.getElementById('calc-result-sub').textContent=`From ${units} units (${volMl.toFixed(3)} ml)`;
+  resultEl.classList.remove('hidden');
+}
+
+function updateQuickRef(){try{
+  const conc=getConc();
+  const vialUnit=document.getElementById('c-vialUnit').value;
+  const el=document.getElementById('calc-quick-ref');
+  if(!conc){el.innerHTML='<span style="color:rgba(255,255,255,.5)">Enter A and B to see the chart.</span>';return;}
+  const concMcg=toMcg(conc,vialUnit);
+  // Common ml volumes for a U-100 syringe (every 5 units = 0.05ml)
+  const marks=[5,10,15,20,25,30,40,50,60,70,80,100];
+  el.innerHTML=
+    '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px"><span>Syringe mark</span><span style="text-align:right">Dose</span></div>'+
+    marks.map(u=>{
+      const v=u*0.01;
+      const d=v*concMcg;
+      const dStr=d>=1000?(d/1000).toFixed(3)+' mg':d.toFixed(1)+' mcg';
+      return`<div class="calc-ref-row">
+        <span class="calc-ref-dose">${u} units</span>
+        <span class="calc-ref-vol">${dStr}</span>
+      </div>`;
+    }).join('');
+}catch(e){console.error("function updateQuickRef(){ error:",e.message);}
+}
+
+function updatePinLabel(){} // kept for compatibility
+
+
+async function masterReset(){
+  // Step 1: First confirmation
+  if(!(await ptConfirm('⚠️ MASTER RESET\n\nThis will permanently delete ALL data including:\n• All compounds & protocols\n• All dose logs\n• All inventory\n• All history\n\nThis cannot be undone.\n\nAre you sure?'))) return;
+  // Step 2: Second confirmation to prevent accidental wipes
+  if(!(await ptConfirm('Are you absolutely sure?\n\nType OK to confirm — this will wipe everything and reload the default compounds.'))) return;
+  // Clear all storage
+  localStorage.removeItem('protocol_data');
+  ['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7'].forEach(k=>localStorage.removeItem(k));
+  // Reload fresh
+  D={compounds:[],logs:[],inventory:[],history:[],skips:[]};
+  load();
+  render();
+  ptAlert('Reset complete. All data cleared and default compounds loaded.');
+}
+
+async function checkBackupReminder(){try{
+  const lastRemind=localStorage.getItem('pt_last_backup_remind');
+  const now=Date.now();
+  const ONE_WEEK=7*24*60*60*1000;
+  if(!lastRemind||now-parseInt(lastRemind)>ONE_WEEK){
+    safeSet('pt_last_backup_remind', now.toString());
+    // Only show if user has actual data worth backing up
+    if(D.logs&&D.logs.length>0){
+      setTimeout(async ()=>{
+        if(await ptConfirm('📦 Weekly Backup Reminder\n\nIt\'s been a week since your last backup prompt.\n\nTap OK to save a backup now, or Cancel to skip.')){
+          exportData();
+        }
+      }, 1500);
+    }
+  }
+}catch(e){console.error("function checkBackupReminder() error:",e.message);}
+}
+
+function exportData(){
+  const date=localDateStr();
+  const filename='peptide-backup-'+date+'.json';
+  const data=JSON.stringify(D, null, 2);
+  const blob=new Blob([data],{type:'application/json'});
+  const file=new File([blob], filename, {type:'application/json'});
+
+  // Use Web Share API (native iOS share sheet — Files, Notes, AirDrop etc)
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+    navigator.share({
+      files:[file],
+      title:'Peptide Tracker Backup',
+    }).catch(err=>{
+      if(err.name!=='AbortError') exportDataFallback(data, filename);
+    });
+  } else {
+    // Fallback: create download link
+    exportDataFallback(data, filename);
+  }
+}
+
+function exportDataFallback(data, filename){
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename||'peptide-backup.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importFromFile(input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      const imported=JSON.parse(e.target.result);
+      if(!imported.compounds) throw new Error('Invalid backup — no compounds found');
+      if(!(await ptConfirm('Restore from "'+file.name+'"?\n\nCompounds: '+imported.compounds.length+'\nLogs: '+(imported.logs||[]).length+'\nInventory: '+(imported.inventory||[]).length+'\n\nThis replaces all current data.'))) return;
+      D.compounds=imported.compounds||[];
+      D.logs=imported.logs||[];
+      D.inventory=imported.inventory||[];
+      D.history=imported.history||[];
+      D.skips=imported.skips||[];
+      save();render();
+      ptAlert('✓ Data restored successfully!');
+    } catch(err){
+      ptAlert('Failed to restore: '+err.message);
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+function storageUsage(){
+  let bytes=0;
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      const v=localStorage.getItem(k)||'';
+      bytes += k.length + v.length;
+    }
+  }catch(e){ return null; }
+  const kb=bytes/1024;
+  const pct=Math.min(100, Math.round((bytes/(5*1024*1024))*100)); // 5MB nominal
+  return {bytes,kb,pct};
+}
+function renderStorageUsage(){
+  const el=document.getElementById('storage-usage');
+  if(!el) return;
+  const u=storageUsage();
+  if(!u){ el.textContent=''; return; }
+  const warn = u.pct>=80;
+  el.innerHTML='<div style="font-size:11px;color:'+(warn?'var(--danger,#c92a2a)':'var(--text2)')+
+    ';margin-top:8px">Storage: ~'+u.kb.toFixed(0)+' KB used (~'+u.pct+'% of a typical 5 MB allowance)'+
+    (warn?' — consider exporting a backup and clearing old data.':'')+'</div>';
+}
+async function manualSave(){
+  // Snapshot ALL compounds to history on every Save & Update
+  if(!D.history) D.history=[];
+  const now = new Date().toISOString();
+  D.compounds.forEach(c=>{
+    D.history.push({
+      id:uid(),
+      cid:c.id,
+      name:c.name,
+      savedAt:now,
+      snap:{...c}
+    });
+  });
+  // Keep history lean - max 50 entries per compound
+  const byCid={};
+  D.history.forEach(h=>{
+    if(!byCid[h.cid]) byCid[h.cid]=[];
+    byCid[h.cid].push(h);
+  });
+  D.history=Object.values(byCid).flatMap(arr=>
+    arr.sort((a,b)=>b.savedAt.localeCompare(a.savedAt)).slice(0,50)
+  );
+  save();
+  safeSet('pt_backup', JSON.stringify(D));
+  render();
+  renderStorageUsage();
+  const el=document.getElementById('save-confirm');
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none', 2000);
+}
+
+
+
+function copyStackPrompt(){
+  const active=D.compounds.filter(c=>c.active);
+  if(!active.length){ptAlert('No active compounds to analyse.');return;}
+
+  function dpw(c){
+    if(!c.days||!c.days.length){
+      const m={daily:7,bid:7,eod:3.5,e3d:2.3,'2xweek':2,'3xweek':3,'4xweek':4,'5xweek':5,weekly:1,biweekly:0.5,monthly:0.25,prn:0};
+      return m[c.freq]||7;
+    }
+    return c.days.length;
+  }
+
+  const PEPTIDE_CATS=['Peptide','Growth Hormone','Nootropic'];
+  const peptides=active.filter(c=>PEPTIDE_CATS.includes(c.cat)||!c.cat);
+  const compounds=active.filter(c=>!PEPTIDE_CATS.includes(c.cat)&&c.cat);
+
+  function describeCompound(c){
+    const d=dpw(c);
+    const sessions=c.time==='Both'?2:1;
+    const jabDose=c.dose*sessions;
+    const weekly=parseFloat((jabDose*d).toFixed(2));
+    const freqStr=d===7?'daily':d===3.5?'every other day':d+'x per week';
+    const timingStr=c.time==='Both'?'AM and PM':c.time||'any time';
+    return '  - '+esc(c.name)+': '+jabDose+' '+c.unit+' per session, '+freqStr+', '+timingStr+
+      ', weekly total: '+weekly+' '+c.unit+
+      (c.route?', route: '+c.route:'')+
+      (c.start?', started: '+c.start:'');
+  }
+
+  let prompt='Please analyse my current peptide and compound stack and provide:\n'+
+    '1. An overview of what this stack is designed to achieve\n'+
+    '2. Notable synergies between compounds\n'+
+    '3. Timing optimisations worth considering\n'+
+    '4. Any potential concerns, interactions or things to monitor\n'+
+    '5. Suggestions to enhance or complement the stack\n\n'+
+    'Please keep the response concise and practical.\n\n'+
+    'MY CURRENT STACK:\n\n';
+
+  if(peptides.length){
+    prompt+='PEPTIDES & NOOTROPICS:\n';
+    prompt+=peptides.map(describeCompound).join('\n')+'\n\n';
+  }
+  if(compounds.length){
+    prompt+='HORMONES & COMPOUNDS:\n';
+    prompt+=compounds.map(describeCompound).join('\n')+'\n';
+  }
+
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(prompt).then(()=>{
+      const confirm=document.getElementById('copy-stack-confirm');
+      confirm.style.display='block';
+      document.getElementById('copy-stack-btn').textContent='Copied!';
+      setTimeout(()=>{
+        confirm.style.display='none';
+        document.getElementById('copy-stack-btn').textContent='Copy Stack for AI Analysis';
+      },3000);
+    }).catch(()=>ptAlert('Could not copy automatically. Please try again.'));
+  } else {
+    ptAlert('Clipboard not available on this device.');
+  }
+}
+
+function openLink(url){
+  window.open(url,'_blank');
+}
+
+// Force save when app goes to background or is closed
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState==='hidden') save();
+});
+window.addEventListener('pagehide', function(){ save(); });
+window.addEventListener('beforeunload', function(){ save(); });
+
+function init(){
+  // Show today tab by default
+  document.getElementById('pg-today').classList.remove('hidden');
+  load();
+  checkBackupReminder();
+  document.getElementById('hdrDate').textContent=new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
+  viewDate=tod();
+  updateDateNav();
+  render();
+  // Pre-init calculator so syringe renders without needing to navigate there
+  try{
+    initCalc();
+    renderOilCompounds();
+  }catch(e){}
+  // Check for cycle end reminders
+  setTimeout(checkCycleEndReminders, 800);
+}
+
+// ─── CYCLE END REMINDER ──────────────────────────────────────────────────────
+function getCompoundEndDate(c){
+  // An explicit end date counts regardless of durtype
+  if(c.end) return c.end;
+  if(c.durtype==='enddate' && c.end) return c.end;
+  if(c.durtype==='weeks' && c.weeks && c.start){
+    const startD = new Date(c.start+'T12:00:00');
+    const endD = new Date(startD);
+    endD.setDate(endD.getDate() + parseInt(c.weeks)*7);
+    return localDateStr(endD);
+  }
+  return null;
+}
+
+function checkCycleEndReminders(){
+  const today = tod();
+  const reminded = JSON.parse(localStorage.getItem('pt_cycle_reminded')||'{}');
+  const expired = [];
+
+  D.compounds.filter(c=>c.active).forEach(c=>{
+    const endDate = getCompoundEndDate(c);
+    if(!endDate) return;
+    // Remind if today is within 7 days after end date and haven't reminded this cycle
+    const key = c.id+'_'+endDate;
+    if(today >= endDate && today <= addDays(endDate, 7) && !reminded[key]){
+      expired.push({c, endDate, key});
+    }
+  });
+
+  if(!expired.length) return;
+
+  // Show reminder for first expired compound (queue the rest)
+  showCycleReminder(expired, 0, reminded);
+}
+
+function addDays(dateStr, n){
+  const d = new Date(dateStr+'T12:00:00');
+  d.setDate(d.getDate()+n);
+  return localDateStr(d);
+}
+
+let _cycleReminderList = [];
+let _cycleReminderReminded = {};
+
+function showCycleReminder(list, idx, reminded){
+  if(idx >= list.length) return;
+  _cycleReminderList = list;
+  _cycleReminderReminded = reminded || {};
+  const {c, endDate, key} = list[idx];
+
+  // Create modal overlay
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,51,0.85);z-index:999;display:flex;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom,0px)';
+
+  const endFmt = new Date(endDate+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'});
+
+  const freqOpts = [
+    ['daily','Daily'],['bid','Twice Daily'],['eod','Every Other Day'],['e3d','Every 3 Days'],
+    ['2xweek','2x/Week'],['3xweek','3x/Week'],['4xweek','4x/Week'],['5xweek','5x/Week'],
+    ['weekly','Weekly'],['biweekly','Every 2 Wks'],['monthly','Monthly']
+  ].map(([v,l])=>`<option value="${v}" ${c.freq===v?'selected':''}>${l}</option>`).join('');
+
+  const unitOpts = ['mcg','mg','IU','ml'].map(u=>`<option ${c.unit===u?'selected':''}>${u}</option>`).join('');
+  const timeOpts = ['AM','PM','Both','Any'].map(t=>`<option ${(c.time||'').toUpperCase()===t?'selected':''}>${t}</option>`).join('');
+
+  const inp = (id,type,val,ph,extra='')=>
+    `<input type="${type}" id="${id}" value="${val||''}" placeholder="${ph}"
+      style="width:100%;padding:10px 12px;border:1.5px solid #dde4f5;border-radius:10px;font-size:14px;color:#0033A0;background:#f0f4ff;box-sizing:border-box" ${extra}>`;
+  const sel = (id,opts)=>
+    `<select id="${id}" style="width:100%;padding:10px 12px;border:1.5px solid #dde4f5;border-radius:10px;font-size:14px;color:#0033A0;background:#f0f4ff">${opts}</select>`;
+  const lbl = t=>`<div style="font-size:11px;font-weight:700;color:#0033A0;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 5px">${t}</div>`;
+
+  overlay.innerHTML = `
+    <div id="cycle-sheet" style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;will-change:transform">
+      <div style="padding:10px 0 0"><div style="width:38px;height:5px;background:#c9d4ee;border-radius:99px;margin:0 auto"></div></div>
+      <div style="padding:10px 20px 0">
+        <div style="text-align:center;margin-bottom:4px;font-size:26px">🔔</div>
+        <div style="text-align:center;font-size:17px;font-weight:700;color:#0033A0;margin-bottom:4px">Cycle Complete</div>
+        <div style="text-align:center;font-size:13px;color:#666;margin-bottom:16px">
+          <strong>${esc(c.name)}</strong> ended ${endFmt}
+        </div>
+
+        <div style="background:#f0f4ff;border-radius:12px;padding:14px;margin-bottom:4px">
+          ${lbl('Next Cycle Start')}
+          ${inp('cycle-next-start','date',addDays(endDate,1),'')}
+
+          ${lbl('Duration (weeks)')}
+          <div style="display:flex;gap:8px;align-items:center">
+            ${inp('cycle-next-weeks','number',c.weeks||'','e.g. 8','min="1" max="52" style="width:100%;padding:10px 12px;border:1.5px solid #dde4f5;border-radius:10px;font-size:14px;color:#0033A0;background:#fff;box-sizing:border-box"')}
+            <span style="font-size:12px;color:#888;white-space:nowrap">weeks</span>
+          </div>
+          <div style="font-size:11px;color:#888;margin-top:4px">Leave blank to keep current end date type</div>
+        </div>
+
+        <div style="background:#f0f4ff;border-radius:12px;padding:14px;margin-bottom:4px">
+          ${lbl('Dose')}
+          <div style="display:flex;gap:8px">
+            ${inp('cycle-next-dose','number',c.dose||'','e.g. 500')}
+            ${sel('cycle-next-unit',unitOpts)}
+          </div>
+
+          ${lbl('Frequency')}
+          ${sel('cycle-next-freq',freqOpts)}
+
+          ${lbl('Timing')}
+          ${sel('cycle-next-time',timeOpts)}
+
+          ${lbl('Vial Size')}
+          <div style="display:flex;gap:8px;align-items:center">
+            ${inp('cycle-next-vial','number',c.vialSize||'','e.g. 5')}
+            <span style="font-size:12px;color:#888;white-space:nowrap">mg / vial</span>
+          </div>
+
+          ${lbl('BAC Water')}
+          <div style="display:flex;gap:8px;align-items:center">
+            ${inp('cycle-next-bac','number',c.bacWater||'','e.g. 2')}
+            <span style="font-size:12px;color:#888;white-space:nowrap">ml</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:12px 20px 32px">
+        <button id="cycle-btn-schedule"
+          style="width:100%;padding:14px;background:#0033A0;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px">
+          ✅ Schedule Next Cycle
+        </button>
+        <button id="cycle-btn-dismiss"
+          style="width:100%;padding:13px;background:none;color:#0033A0;border:1.5px solid #0033A0;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer">
+          Remind me later
+        </button>
+      </div>
+    </div>`;
+
+  overlay._cycleIdx = idx;
+  overlay._cycleKey = key;
+  overlay._cycleCid = c.id;
+  overlay.id = 'cycle-reminder-overlay';
+  document.body.appendChild(overlay);
+
+  document.getElementById('cycle-btn-schedule').addEventListener('click', function(){
+    scheduleCycleNext(overlay._cycleCid, overlay._cycleKey, overlay._cycleIdx);
+  });
+  document.getElementById('cycle-btn-dismiss').addEventListener('click', function(){
+    dismissCycleReminder(overlay._cycleKey, overlay._cycleIdx);
+  });
+  // Escape hatch: tapping the dimmed backdrop dismisses, so this can never trap you
+  overlay.addEventListener('click', function(ev){
+    if(ev.target===overlay) dismissCycleReminder(overlay._cycleKey, overlay._cycleIdx);
+  });
+
+  // Swipe down to close. Only engages when the sheet is scrolled to the top,
+  // so it never fights with scrolling the form.
+  const sheet = document.getElementById('cycle-sheet');
+  if(sheet){
+    let startY=0, curY=0, dragging=false;
+    sheet.addEventListener('touchstart', function(ev){
+      if(sheet.scrollTop>0 || ev.touches.length!==1) return;
+      startY=ev.touches[0].clientY; curY=startY; dragging=true;
+      sheet.style.transition='none';
+    }, {passive:true});
+    sheet.addEventListener('touchmove', function(ev){
+      if(!dragging) return;
+      curY=ev.touches[0].clientY;
+      const dy=curY-startY;
+      if(dy>0){
+        sheet.style.transform='translateY('+dy+'px)';
+        overlay.style.background='rgba(0,0,51,'+Math.max(0.25,0.85-dy/400)+')';
+      }
+    }, {passive:true});
+    const settle=function(){
+      if(!dragging) return;
+      dragging=false;
+      const dy=curY-startY;
+      sheet.style.transition='transform .22s ease';
+      if(dy>110){
+        sheet.style.transform='translateY(100%)';
+        overlay.style.transition='opacity .2s ease';
+        overlay.style.opacity='0';
+        setTimeout(function(){ dismissCycleReminder(overlay._cycleKey, overlay._cycleIdx); }, 200);
+      } else {
+        sheet.style.transform='';
+        overlay.style.background='rgba(0,0,51,0.85)';
+      }
+    };
+    sheet.addEventListener('touchend', settle, {passive:true});
+    sheet.addEventListener('touchcancel', settle, {passive:true});
+  }
+}
+
+function scheduleCycleNext(cid, key, listIdx){
+  const list = _cycleReminderList;
+  const startDate = document.getElementById('cycle-next-start').value;
+  const weeks     = document.getElementById('cycle-next-weeks').value;
+  const dose      = document.getElementById('cycle-next-dose').value;
+  const unit      = document.getElementById('cycle-next-unit').value;
+  const freq      = document.getElementById('cycle-next-freq').value;
+  const time      = document.getElementById('cycle-next-time').value;
+  const vialSize  = document.getElementById('cycle-next-vial').value;
+  const bacWater  = document.getElementById('cycle-next-bac').value;
+  if(!startDate){ ptAlert('Please enter a start date'); return; }
+
+  const idx = D.compounds.findIndex(c=>c.id===cid);
+  if(idx > -1){
+    D.compounds[idx].start   = startDate;
+    D.compounds[idx].active  = true;
+    if(dose)     D.compounds[idx].dose     = dose;
+    if(unit)     D.compounds[idx].unit     = unit;
+    if(freq)     D.compounds[idx].freq     = freq;
+    if(time)     D.compounds[idx].time     = time.toLowerCase();
+    if(vialSize) D.compounds[idx].vialSize = vialSize;
+    if(bacWater) D.compounds[idx].bacWater = bacWater;
+    if(weeks){
+      D.compounds[idx].durtype = 'weeks';
+      D.compounds[idx].weeks   = weeks;
+      D.compounds[idx].end     = addDays(startDate, parseInt(weeks)*7);
+    } else {
+      D.compounds[idx].end = '';
+    }
+  }
+
+  // Mark as reminded
+  const reminded = _cycleReminderReminded;
+  reminded[key] = tod();
+  safeSet('pt_cycle_reminded', JSON.stringify(reminded));
+
+  save();
+  render();
+  document.getElementById('cycle-reminder-overlay')?.remove();
+
+  const nextFmt = new Date(startDate+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long'});
+  ptAlert('✅ Next cycle scheduled from '+nextFmt+'!');
+
+  // Show next reminder in queue
+  setTimeout(()=>showCycleReminder(list, listIdx+1, reminded), 300);
+}
+
+function dismissCycleReminder(key, listIdx){
+  const list = _cycleReminderList;
+  const reminded = _cycleReminderReminded;
+  reminded[key] = 'snoozed';
+  safeSet('pt_cycle_reminded', JSON.stringify(reminded));
+  document.getElementById('cycle-reminder-overlay')?.remove();
+  // Show next in queue
+  setTimeout(()=>showCycleReminder(list, listIdx+1, reminded), 300);
+}
+
+init();
+</script>
+</body>
+</html>
