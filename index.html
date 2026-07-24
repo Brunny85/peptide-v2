@@ -13,42 +13,48 @@
 <title>Protocol Tracker</title>
 <style>
 :root{
-  /* ── literal brand values (unchanged in Stage 0) ── */
-  --c-blue:#0033A0; --c-blue-2:#0044CC; --c-blue-hi:#1a5cd4;
-  --c-white:#FFFFFF; --c-ice:#BDD4FF; --c-sky:#5577CC; --c-steel:#2255CC;
-  --c-mint:#4ade80; --c-amber:#F59E0B; --c-red:#EF4444; --c-salmon:#FFC4BA;
-  --c-ice2:#8aaee0;
+  /* ── clinical palette literals ── */
+  --c-brand:#0B3D91; --c-brand-strong:#072E73; --c-brand-soft:#EAF1FF;
+  --c-bg:#F4F7FB; --c-surface:#FFFFFF; --c-surface2:#F8FAFD;
+  --c-text:#14213D; --c-text-muted:#66758A; --c-border:#DCE4EF;
+  --c-success:#1FA971; --c-warn:#D99016; --c-danger:#D94A4A;
+  --c-white:#FFFFFF;
+  /* legacy literal names retained so any stray ref still resolves */
+  --c-blue:#0B3D91; --c-blue-2:#072E73; --c-blue-hi:#0B3D91;
+  --c-ice:#66758A; --c-sky:#66758A; --c-steel:#DCE4EF;
+  --c-mint:#1FA971; --c-amber:#D99016; --c-red:#D94A4A; --c-salmon:#D94A4A; --c-ice2:#A7B4C6;
 
-  /* ── SEMANTIC tokens (Stage 0: aliased to current blue/white theme) ── */
-  --brand:var(--c-blue); --brand-strong:var(--c-blue-2);
-  --page-bg:var(--c-blue); --page-bg-2:var(--c-blue);
-  --surface-primary:var(--c-blue-hi); --surface-secondary:var(--c-blue-2);
-  --surface-selected:var(--c-white);
-  --overlay-surface:var(--c-blue-hi);
+  /* ── SEMANTIC tokens — LIGHT CLINICAL ── */
+  --brand:var(--c-brand); --brand-strong:var(--c-brand-strong);
+  --page-bg:var(--c-bg); --page-bg-2:var(--c-bg);
+  --surface-primary:var(--c-surface); --surface-secondary:var(--c-surface2);
+  --surface-selected:var(--c-brand);
+  --overlay-surface:var(--c-surface);
 
-  --text-primary:var(--c-white); --text-secondary:var(--c-ice);
-  --text-disabled:var(--c-ice2); --text-on-brand:var(--c-white);
-  --text-on-surface:var(--c-white);
+  --text-primary:var(--c-text); --text-secondary:var(--c-text-muted);
+  --text-disabled:#A7B4C6; --text-on-brand:var(--c-white);
+  --text-on-surface:var(--c-text);
 
-  --border-primary:var(--c-steel); --border-subtle:rgba(255,255,255,.15);
-  --border-on-brand:rgba(255,255,255,.3);
+  --border-primary:var(--c-border); --border-subtle:var(--c-border);
+  --border-on-brand:rgba(255,255,255,.35);
 
-  --field-bg:rgba(255,255,255,.2); --field-text:var(--c-white);
-  --field-border:rgba(255,255,255,.3); --field-focus:var(--c-white);
+  --field-bg:var(--c-surface2); --field-text:var(--c-text);
+  --field-border:var(--c-border); --field-focus:var(--c-brand);
 
-  --btn-primary-bg:var(--c-white); --btn-primary-text:var(--c-blue);
-  --btn-secondary-bg:rgba(255,255,255,.15); --btn-secondary-text:var(--c-white);
-  --btn-danger-bg:var(--c-red); --btn-danger-text:var(--c-white);
+  --btn-primary-bg:var(--c-brand); --btn-primary-text:var(--c-white);
+  --btn-secondary-bg:var(--c-surface2); --btn-secondary-text:var(--c-text);
+  --btn-danger-bg:var(--c-danger); --btn-danger-text:var(--c-white);
 
-  --nav-active:var(--c-blue); --nav-inactive:var(--c-blue);
-  --nav-surface:var(--c-white);
+  --nav-active:var(--c-brand); --nav-inactive:var(--c-text-muted);
+  --nav-surface:var(--c-surface);
 
-  --success:var(--c-mint); --warn:var(--c-amber); --danger:var(--c-red);
-  --on-success:var(--c-white); --on-warn:var(--c-blue); --on-danger:var(--c-white);
+  --success:var(--c-success); --warn:var(--c-warn); --danger:var(--c-danger);
+  /* text-on-light variants (darker for readability; fills use the base above) */
+  --warn-text:#A66A00; --success-text:#157A50; --danger-text:#B23333;
+  --on-success:var(--c-white); --on-warn:var(--c-white); --on-danger:var(--c-white);
 
-  /* legacy aliases so untouched rules keep working */
   --bg:var(--page-bg);--bg2:var(--page-bg-2);--card:var(--surface-primary);--card2:var(--surface-secondary);
-  --accent:var(--text-primary);--text:var(--text-primary);--text2:var(--text-secondary);--border:var(--border-primary);
+  --accent:var(--brand);--text:var(--text-primary);--text2:var(--text-secondary);--border:var(--border-primary);
 
   --sans:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
   --mono:'SF Mono','Menlo',monospace;
