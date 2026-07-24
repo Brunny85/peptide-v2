@@ -1329,22 +1329,11 @@ function migIsOil(c){
   return false;
 }
 
-// Add vialConc without touching vialSize/bacWater. Returns {compound, flag}.
+// v2 migration (path B): schema stamp only. Concentration stays derived live
+// from inventory at calc time — the app already does this correctly, so no
+// per-compound vialConc is written (avoids stale snapshots).
 function migrateCompound(src){
-  const c = {...src};                     // shallow clone; we only ADD a field
-  if(c.schema===CURRENT_SCHEMA) return {compound:c, flag:null};
-  const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater);
-  let flag=null;
-  const oil = migIsOil(c);
-  const nameOil = !oil && looksOilByName(c.name);
-  if(oil || nameOil){
-    if(Number.isFinite(vs)&&vs>0){ c.vialConc = vs; if(nameOil) flag='reclassified-oil-by-name'; }
-    else { flag='oil-no-conc'; }
-  } else {
-    if(Number.isFinite(vs)&&vs>0&&Number.isFinite(bac)&&bac>0){ c.vialConc = vs/bac; }
-    else { flag='peptide-insufficient'; }
-  }
-  return {compound:c, flag:flag};
+  return {compound:{...src}, flag:null};
 }
 
 // Detect whether a parsed payload needs migration (no schema, or schema<CURRENT).
@@ -1359,11 +1348,7 @@ function migrateToCurrentSchema(data){
   candidate.schema = CURRENT_SCHEMA;
   candidate.migratedAt = utcStamp();
   const flags=[];
-  candidate.compounds = (candidate.compounds||[]).map(src=>{
-    const {compound,flag} = migrateCompound(src);
-    if(flag) flags.push({name:compound.name||'(unnamed)', flag});
-    return compound;
-  });
+  candidate.compounds = (candidate.compounds||[]).map(src=>({...src}));
   // preserve logs, inventory, history, skips, settings exactly
   candidate.logs      = candidate.logs      || [];
   candidate.inventory = candidate.inventory || [];
@@ -1379,8 +1364,7 @@ function validateCandidate(cand){
   if(!Array.isArray(cand.compounds)) return 'compounds not an array';
   for(const c of cand.compounds){
     if(typeof c!=='object') return 'bad compound';
-    if(c.vialConc!==undefined && !(Number.isFinite(c.vialConc)&&c.vialConc>0))
-      return 'invalid vialConc on '+(c.name||'?');
+
   }
   if(!Array.isArray(cand.logs)) return 'logs not an array';
   return null; // ok
@@ -3502,7 +3486,7 @@ function importFromFile(input){
       D.schema=CURRENT_SCHEMA;
       safeSet('pt_backup', JSON.stringify(D));
       render(); renderStorageUsage();
-      ptAlert('Data restored successfully.'+(importFlags.length?' Some compounds need a concentration set.':''));
+      ptAlert('Data restored successfully.');
     } catch(err){
       ptAlert('Restore failed: '+err.message);
     }
