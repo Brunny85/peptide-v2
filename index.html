@@ -1305,6 +1305,113 @@ function save(){
   }
   return res.ok;
 }
+// ═══════════════════════════════════════════════════════════
+// v2.0 SCHEMA + TRANSACTIONAL MIGRATION
+// ═══════════════════════════════════════════════════════════
+const LEGACY_KEYS = ['protocol_data','pt_backup'];   // dev production keys (v1)
+const PRIMARY_KEY = 'protocol_data';
+const BACKUP_KEY  = 'pt_backup';
+const MIG_BACKUP_KEY = 'pt_premigration_v1';          // never auto-deleted
+const MIG_TEMP_KEY   = 'pt_migration_temp';
+
+// name-based safety net: oil compounds a user may have mis-categorised
+const OIL_NAME_HINTS = ['test','testosterone','sustanon','cypionate','enanthate','propionate',
+  'deca','nandrolone','tren','trenbolone','masteron','drostanolone','primobolan','methenolone',
+  'equipoise','boldenone','eq','npp','dhb','proviron'];
+
+function looksOilByName(name){
+  const n=(name||'').toLowerCase();
+  return OIL_NAME_HINTS.some(h=> n.indexOf(h)>-1);
+}
+function migIsOil(c){
+  const cat=(c.cat||'').toLowerCase(), route=(c.route||'').toLowerCase();
+  if(cat==='hormone' || route.indexOf('oil')>-1 || route.indexOf('im injection')>-1) return true;
+  return false;
+}
+
+// Add vialConc without touching vialSize/bacWater. Returns {compound, flag}.
+function migrateCompound(src){
+  const c = {...src};                     // shallow clone; we only ADD a field
+  if(c.schema===CURRENT_SCHEMA) return {compound:c, flag:null};
+  const vs=parseFloat(c.vialSize), bac=parseFloat(c.bacWater);
+  let flag=null;
+  const oil = migIsOil(c);
+  const nameOil = !oil && looksOilByName(c.name);
+  if(oil || nameOil){
+    if(Number.isFinite(vs)&&vs>0){ c.vialConc = vs; if(nameOil) flag='reclassified-oil-by-name'; }
+    else { flag='oil-no-conc'; }
+  } else {
+    if(Number.isFinite(vs)&&vs>0&&Number.isFinite(bac)&&bac>0){ c.vialConc = vs/bac; }
+    else { flag='peptide-insufficient'; }
+  }
+  return {compound:c, flag:flag};
+}
+
+// Detect whether a parsed payload needs migration (no schema, or schema<CURRENT).
+function needsMigration(data){
+  if(!data || typeof data!=='object') return false;
+  return !(typeof data.schema==='number' && data.schema>=CURRENT_SCHEMA);
+}
+
+// Build a migrated candidate from a v1/unversioned payload. Never mutates input.
+function migrateToCurrentSchema(data){
+  const candidate = JSON.parse(JSON.stringify(data));   // deep clone
+  candidate.schema = CURRENT_SCHEMA;
+  candidate.migratedAt = utcStamp();
+  const flags=[];
+  candidate.compounds = (candidate.compounds||[]).map(src=>{
+    const {compound,flag} = migrateCompound(src);
+    if(flag) flags.push({name:compound.name||'(unnamed)', flag});
+    return compound;
+  });
+  // preserve logs, inventory, history, skips, settings exactly
+  candidate.logs      = candidate.logs      || [];
+  candidate.inventory = candidate.inventory || [];
+  candidate.history   = candidate.history   || [];
+  candidate.skips     = candidate.skips     || [];
+  return {candidate, flags};
+}
+
+// Validate a migrated candidate before it is allowed to persist.
+function validateCandidate(cand){
+  if(!cand || typeof cand!=='object') return 'not an object';
+  if(cand.schema!==CURRENT_SCHEMA) return 'schema not stamped';
+  if(!Array.isArray(cand.compounds)) return 'compounds not an array';
+  for(const c of cand.compounds){
+    if(typeof c!=='object') return 'bad compound';
+    if(c.vialConc!==undefined && !(Number.isFinite(c.vialConc)&&c.vialConc>0))
+      return 'invalid vialConc on '+(c.name||'?');
+  }
+  if(!Array.isArray(cand.logs)) return 'logs not an array';
+  return null; // ok
+}
+
+// Two-phase transactional migration. Returns {ok, flags?, error?}.
+function runMigration(sourcePayload){
+  // 1. clone + build candidate
+  const {candidate, flags} = migrateToCurrentSchema(sourcePayload);
+  // 2. validate in memory
+  const vErr = validateCandidate(candidate);
+  if(vErr) return {ok:false, error:'Validation failed: '+vErr};
+  const json = JSON.stringify(candidate);
+  // 3. write pre-migration backup FIRST, confirm it
+  const origJson = JSON.stringify(sourcePayload);
+  if(!safeSet(MIG_BACKUP_KEY, origJson).ok) return {ok:false, error:'Could not write pre-migration backup.'};
+  if(safeGet(MIG_BACKUP_KEY)!==origJson)    return {ok:false, error:'Pre-migration backup read-back failed.'};
+  // 4. write candidate to temp key, read back + validate
+  if(!safeSet(MIG_TEMP_KEY, json).ok)       return {ok:false, error:'Could not write migration candidate.'};
+  const tempBack = safeGet(MIG_TEMP_KEY);
+  if(tempBack!==json)                        return {ok:false, error:'Candidate read-back mismatch.'};
+  if(validateCandidate(safeParse(tempBack,null))) return {ok:false, error:'Persisted candidate invalid.'};
+  // 5. commit to primary key, read back + validate
+  if(!safeSet(PRIMARY_KEY, json).ok)        return {ok:false, error:'Could not write primary key.'};
+  if(safeGet(PRIMARY_KEY)!==json)            return {ok:false, error:'Primary read-back mismatch.'};
+  // 6. remove temp only; RETAIN pre-migration backup
+  safeRemove(MIG_TEMP_KEY);
+  return {ok:true, flags:flags, candidate:candidate};
+}
+
+let _migrationFlags=[]; let _migrationError=null;
 function load(){
   const r=localStorage.getItem('protocol_data');
   const backup=localStorage.getItem('pt_backup');
@@ -1323,13 +1430,25 @@ function load(){
   }
 
   if(best&&best.compounds&&best.compounds.length){
+    // v2: migrate v1/unversioned data to schema 2 transactionally
+    if(needsMigration(best)){
+      const res=runMigration(best);
+      if(res.ok){
+        best=res.candidate;
+        _migrationFlags=res.flags||[];
+      } else {
+        // migration failed — keep loading the ORIGINAL data untouched, warn later
+        _migrationError=res.error;
+      }
+    }
     D.compounds = best.compounds;
     D.logs      = best.logs      || [];
     D.inventory = best.inventory || [];
     D.history   = best.history   || [];
     D.skips     = best.skips     || [];
-    // Re-save to protocol_data to keep them in sync
-    safeSet('protocol_data', JSON.stringify(D));
+    D.schema    = best.schema    || undefined;
+    // keep in sync only when no migration error (migration already wrote primary)
+    if(!_migrationError && !needsMigration(D)) safeSet('protocol_data', JSON.stringify(D));
     if(!D.inventory.length){ D.inventory=defaultInventory(); save(); }
   } else {
     D.compounds = DEFAULTS.map(x=>({...x}));
@@ -3313,7 +3432,8 @@ async function checkBackupReminder(){try{
 function exportData(){
   const date=localDateStr();
   const filename='peptide-backup-'+date+'.json';
-  const data=JSON.stringify(D, null, 2);
+  const payload=Object.assign({}, D, {schema:CURRENT_SCHEMA, appVersion:APP_VERSION, exportedAt:utcStamp()});
+  const data=JSON.stringify(payload, null, 2);
   const blob=new Blob([data],{type:'application/json'});
   const file=new File([blob], filename, {type:'application/json'});
 
@@ -3350,17 +3470,41 @@ function importFromFile(input){
   reader.onload=async function(e){
     try{
       const imported=JSON.parse(e.target.result);
-      if(!imported.compounds) throw new Error('Invalid backup — no compounds found');
-      if(!(await ptConfirm('Restore from "'+file.name+'"?\n\nCompounds: '+imported.compounds.length+'\nLogs: '+(imported.logs||[]).length+'\nInventory: '+(imported.inventory||[]).length+'\n\nThis replaces all current data.'))) return;
-      D.compounds=imported.compounds||[];
-      D.logs=imported.logs||[];
-      D.inventory=imported.inventory||[];
-      D.history=imported.history||[];
-      D.skips=imported.skips||[];
-      save();render();
-      ptAlert('✓ Data restored successfully!');
+      if(!imported || typeof imported!=='object' || !Array.isArray(imported.compounds))
+        throw new Error('Not a valid Peptide Tracker backup.');
+      // reject a schema newer than this app understands
+      if(typeof imported.schema==='number' && imported.schema>CURRENT_SCHEMA)
+        throw new Error('This backup is from a newer app version (schema '+imported.schema+'). Update the app first.');
+      // migrate older/unversioned in memory
+      let candidate=imported;
+      let importFlags=[];
+      if(needsMigration(imported)){
+        const {candidate:cand, flags}=migrateToCurrentSchema(imported);
+        const vErr=validateCandidate(cand);
+        if(vErr) throw new Error('Backup could not be migrated: '+vErr);
+        candidate=cand; importFlags=flags;
+      }
+      const flagNote = importFlags.length ? '\n\n'+importFlags.length+' compound(s) need a concentration set after import.' : '';
+      if(!(await ptConfirm('Restore from "'+file.name+'"?\n\nCompounds: '+candidate.compounds.length+'\nLogs: '+(candidate.logs||[]).length+'\nInventory: '+(candidate.inventory||[]).length+flagNote+'\n\nThis replaces all current data.'))){ input.value=''; return; }
+      // back up CURRENT state before overwriting
+      safeSet('pt_preimport_backup', JSON.stringify(D));
+      // build + validate + persist transactionally
+      const cJson=JSON.stringify(candidate);
+      const wr=safeSet(PRIMARY_KEY, cJson);
+      if(!wr.ok) throw new Error('Could not save imported data ('+wr.reason+'). Your current data is unchanged.');
+      if(safeGet(PRIMARY_KEY)!==cJson) throw new Error('Read-back failed. Your current data is unchanged.');
+      // commit to live state only after successful persistence
+      D.compounds=candidate.compounds||[];
+      D.logs=candidate.logs||[];
+      D.inventory=candidate.inventory||[];
+      D.history=candidate.history||[];
+      D.skips=candidate.skips||[];
+      D.schema=CURRENT_SCHEMA;
+      safeSet('pt_backup', JSON.stringify(D));
+      render(); renderStorageUsage();
+      ptAlert('Data restored successfully.'+(importFlags.length?' Some compounds need a concentration set.':''));
     } catch(err){
-      ptAlert('Failed to restore: '+err.message);
+      ptAlert('Restore failed: '+err.message);
     }
     input.value='';
   };
@@ -3390,6 +3534,24 @@ function renderStorageUsage(){
     ';margin-top:8px">Storage: ~'+u.kb.toFixed(0)+' KB used (~'+u.pct+'% of a typical 5 MB allowance)'+
     (warn?' — consider exporting a backup and clearing old data.':'')+'</div>';
 }
+// History retention (spec §18): newest 12 ∪ last 6 months, hard cap 20, newest never pruned.
+function applyHistoryRetention(history){
+  const arr=(history||[]).slice().sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
+  if(arr.length<=12) return arr;
+  const sixMonthsAgo=new Date(); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth()-6);
+  const cutoff=sixMonthsAgo.toISOString();
+  const newest12=arr.slice(0,12);
+  const recent=arr.filter(h=> (h.savedAt||'') >= cutoff);
+  // union (dedupe by id, else by reference)
+  const seen=new Set(); const union=[];
+  [...newest12, ...recent].forEach(h=>{
+    const k=h.id||JSON.stringify(h);
+    if(!seen.has(k)){ seen.add(k); union.push(h); }
+  });
+  union.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
+  return union.slice(0,20);   // hard cap; newest kept because sorted newest-first
+}
+
 async function manualSave(){
   // Snapshot ALL compounds to history on every Save & Update
   if(!D.history) D.history=[];
@@ -3403,15 +3565,8 @@ async function manualSave(){
       snap:{...c}
     });
   });
-  // Keep history lean - max 50 entries per compound
-  const byCid={};
-  D.history.forEach(h=>{
-    if(!byCid[h.cid]) byCid[h.cid]=[];
-    byCid[h.cid].push(h);
-  });
-  D.history=Object.values(byCid).flatMap(arr=>
-    arr.sort((a,b)=>b.savedAt.localeCompare(a.savedAt)).slice(0,50)
-  );
+  // Bounded, immutable history (spec §18 retention)
+  D.history = applyHistoryRetention(D.history);
   save();
   safeSet('pt_backup', JSON.stringify(D));
   render();
@@ -3703,6 +3858,17 @@ function showCycleReminder(list, idx, reminded){
   }
 }
 
+// Deep, immutable pre-mutation snapshot (spec §18)
+function snapshotCompound(compound, reason){
+  if(!compound) return;
+  let snap;
+  try{ snap = (typeof structuredClone==='function') ? structuredClone(compound) : JSON.parse(JSON.stringify(compound)); }
+  catch(e){ snap = JSON.parse(JSON.stringify(compound)); }
+  if(!D.history) D.history=[];
+  D.history.push({id:uid(), cid:compound.id, name:compound.name, savedAt:utcStamp(), reason:reason||'', snap:snap});
+  D.history=applyHistoryRetention(D.history);
+}
+
 function scheduleCycleNext(cid, key, listIdx){
   const list = _cycleReminderList;
   const startDate = document.getElementById('cycle-next-start').value;
@@ -3717,6 +3883,7 @@ function scheduleCycleNext(cid, key, listIdx){
 
   const idx = D.compounds.findIndex(c=>c.id===cid);
   if(idx > -1){
+    snapshotCompound(D.compounds[idx], 'scheduleCycleNext');
     D.compounds[idx].start   = startDate;
     D.compounds[idx].active  = true;
     if(dose)     D.compounds[idx].dose     = dose;
