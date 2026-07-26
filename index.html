@@ -13,74 +13,34 @@
 <title>Protocol Tracker</title>
 <style>
 :root{
-  /* ── clinical palette literals ── */
-  --c-brand:#0B3D91; --c-brand-strong:#072E73; --c-brand-soft:#EAF1FF;
-  --c-bg:#F4F7FB; --c-surface:#FFFFFF; --c-surface2:#F8FAFD;
-  --c-text:#14213D; --c-text-muted:#66758A; --c-border:#DCE4EF;
-  --c-success:#1FA971; --c-warn:#D99016; --c-danger:#D94A4A;
-  --c-white:#FFFFFF;
-  /* legacy literal names retained so any stray ref still resolves */
-  --c-blue:#0B3D91; --c-blue-2:#072E73; --c-blue-hi:#0B3D91;
-  --c-ice:#66758A; --c-sky:#66758A; --c-steel:#DCE4EF;
-  --c-mint:#1FA971; --c-amber:#D99016; --c-red:#D94A4A; --c-salmon:#D94A4A; --c-ice2:#A7B4C6;
-
-  /* ── SEMANTIC tokens — LIGHT CLINICAL ── */
-  --brand:var(--c-brand); --brand-strong:var(--c-brand-strong);
-  --page-bg:var(--c-bg); --page-bg-2:var(--c-bg);
-  --surface-primary:var(--c-surface); --surface-secondary:var(--c-surface2);
-  --surface-selected:var(--c-brand);
-  --overlay-surface:var(--c-surface);
-
-  --text-primary:var(--c-text); --text-secondary:var(--c-text-muted);
-  --text-disabled:#A7B4C6; --text-on-brand:var(--c-white);
-  --text-on-surface:var(--c-text);
-
-  --border-primary:var(--c-border); --border-subtle:var(--c-border);
-  --border-on-brand:rgba(255,255,255,.35);
-
-  --field-bg:var(--c-surface2); --field-text:var(--c-text);
-  --field-border:var(--c-border); --field-focus:var(--c-brand);
-
-  --btn-primary-bg:var(--c-brand); --btn-primary-text:var(--c-white);
-  --btn-secondary-bg:var(--c-surface2); --btn-secondary-text:var(--c-text);
-  --btn-danger-bg:var(--c-danger); --btn-danger-text:var(--c-white);
-
-  --nav-active:var(--c-brand); --nav-inactive:var(--c-text-muted);
-  --nav-surface:var(--c-surface);
-
-  --success:var(--c-success); --warn:var(--c-warn); --danger:var(--c-danger);
-  /* text-on-light variants (darker for readability; fills use the base above) */
-  --warn-text:#A66A00; --success-text:#157A50; --danger-text:#B23333;
-  --on-success:var(--c-white); --on-warn:var(--c-white); --on-danger:var(--c-white);
-
-  --bg:var(--page-bg);--bg2:var(--page-bg-2);--card:var(--surface-primary);--card2:var(--surface-secondary);
-  --accent:var(--brand);--text:var(--text-primary);--text2:var(--text-secondary);--border:var(--border-primary);
-
+  --bg:#0033A0;--bg2:#0033A0;--card:#1a5cd4;--card2:#0044CC;
+  --accent:#FFFFFF;--text:#FFFFFF;--text2:#BDD4FF;
+  --warn:#F59E0B;--danger:#EF4444;--success:#4ade80;--border:#2255CC;
   --sans:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
   --mono:'SF Mono','Menlo',monospace;
   --r:14px;--tabh:72px;--sb:env(safe-area-inset-bottom,20px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-text-size-adjust:100%}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-text-size-adjust:100%}
 #app{height:100%;display:flex;flex-direction:column;overflow:hidden}
 
 /* Header */
-.hdr{background:var(--nav-surface);padding-top:env(safe-area-inset-top,44px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid var(--brand);flex-shrink:0;position:relative;z-index:10}
-.hdr h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:var(--brand)}
-.hdr h1 span{color:var(--brand)}
-.hdr-sub{font-size:13px;color:var(--c-sky);margin-top:2px}
+.hdr{background:#fff;padding-top:env(safe-area-inset-top,44px);padding-left:20px;padding-right:20px;padding-bottom:14px;border-bottom:2px solid #0033A0;flex-shrink:0;position:relative;z-index:10}
+.hdr h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#0033A0}
+.hdr h1 span{color:#0033A0}
+.hdr-sub{font-size:13px;color:#5577CC;margin-top:2px}
 
 /* Scroll */
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(var(--tabh) + var(--sb) + 48px);min-height:0}
 
 /* Tabs */
-.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--nav-surface);
-  border-top:2px solid var(--brand);display:flex;
+.tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffff;
+  border-top:2px solid #0033A0;display:flex;
   padding-bottom:var(--sb);height:calc(var(--tabh) + var(--sb));z-index:100}
 .tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:4px;background:none;border:none;color:var(--nav-inactive);cursor:pointer;
+  gap:4px;background:none;border:none;color:#0033A0;cursor:pointer;
   font-size:10px;font-family:var(--sans);padding-top:8px;transition:color .15s;opacity:.45}
-.tb.on{color:var(--nav-active);opacity:1;font-weight:700}
+.tb.on{color:#0033A0;opacity:1;font-weight:700}
 .tb svg{width:22px;height:22px}
 /* Fade gradient above tab bar */
 .tabs::before{content:'';position:absolute;top:-40px;left:0;right:0;height:40px;
@@ -89,8 +49,8 @@ html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-
 
 /* FAB */
 .fab{position:fixed;bottom:calc(var(--tabh) + var(--sb) + 20px);right:16px;
-  width:56px;height:56px;border-radius:50%;background:var(--surface-selected);
-  border:2px solid var(--surface-selected);color:var(--brand);cursor:pointer;display:flex;align-items:center;
+  width:56px;height:56px;border-radius:50%;background:#fff;
+  border:2px solid #fff;color:#0033A0;cursor:pointer;display:flex;align-items:center;
   justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.25);z-index:99}
 .fab:active{transform:scale(.93)}
 .pulse{position:absolute;width:100%;height:100%;border-radius:50%;
@@ -114,7 +74,7 @@ html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-
 .col-hdr{display:flex;align-items:center;justify-content:space-between;
   padding:9px 13px;background:var(--card2);border-bottom:1px solid var(--border)}
 .col-ttl{font-size:12px;font-weight:700;letter-spacing:.5px}
-.col-ttl.am{color:var(--text-on-brand);font-weight:800}.col-ttl.pm{color:var(--text-secondary);font-weight:800}
+.col-ttl.am{color:#fff;font-weight:800}.col-ttl.pm{color:#BDD4FF;font-weight:800}
 .col-cnt{font-size:11px;color:var(--text2);font-family:var(--mono)}
 .ci{display:flex;align-items:center;gap:9px;padding:9px 13px;
   border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
@@ -123,7 +83,7 @@ html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-
 .ci.done{opacity:.5}
 .chk{width:22px;height:22px;border-radius:6px;border:2px solid rgba(255,255,255,.35);
   flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;transition:all .15s}
-.chk.done{background:var(--surface-selected);border-color:var(--surface-selected)}
+.chk.done{background:#fff;border-color:#fff}
 .chk svg{display:none}
 .chk.done svg{display:block}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
@@ -151,17 +111,17 @@ html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-
 /* Form */
 .fg{margin-bottom:15px}
 .fl{font-size:13px;color:var(--text2);margin-bottom:6px;display:block;font-weight:500}
-.fi,.fs,.fta{width:100%;background:rgba(255,255,255,.12);border:1px solid var(--border-on-brand);
+.fi,.fs,.fta{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);
   border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;
   font-family:var(--sans);outline:none;-webkit-appearance:none;appearance:none}
-.fi:focus,.fs:focus,.fta:focus{border-color:var(--field-focus);background:var(--field-bg)}
+.fi:focus,.fs:focus,.fta:focus{border-color:#fff;background:rgba(255,255,255,.2)}
 .fta{min-height:72px;resize:none}
 .fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .fhint{font-size:11px;color:var(--text2);margin-top:4px}
 .fdiv{height:1px;background:var(--border);margin:16px 0}
-.fsec{font-size:11px;font-weight:700;color:var(--text-on-brand);text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;border-left:3px solid rgba(255,255,255,.5);padding-left:8px}
+.fsec{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;border-left:3px solid rgba(255,255,255,.5);padding-left:8px}
 
 /* Day checkboxes in form */
 .day-chk-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -169,8 +129,8 @@ html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-
 .day-chk-item:active{background:var(--card2)}
 .day-chk-box{width:22px;height:22px;border-radius:5px;border:2px solid rgba(255,255,255,.4);
   background:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.day-chk-box.on{background:var(--surface-selected);border-color:var(--surface-selected)}
-.day-chk-box.on::after{content:'✓';font-size:12px;font-weight:700;color:var(--brand)}
+.day-chk-box.on{background:#fff;border-color:#fff}
+.day-chk-box.on::after{content:'✓';font-size:12px;font-weight:700;color:#0033A0}
 .day-chk-lbl{font-size:10px;font-weight:600;color:var(--text2);text-align:center}
 .day-chk-item:has(.day-chk-box.on) .day-chk-lbl{color:var(--accent)}
 /* Day picker */
@@ -185,21 +145,21 @@ html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-
 .tog{position:relative;width:44px;height:26px;flex-shrink:0}
 .tog input{opacity:0;width:0;height:0}
 .tog-track{position:absolute;inset:0;background:rgba(255,255,255,.25);border-radius:99px;transition:.2s;cursor:pointer}
-.tog input:checked + .tog-track{background:var(--surface-selected)}
-.tog-track:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:var(--brand);border-radius:50%;transition:.2s}
+.tog input:checked + .tog-track{background:#fff}
+.tog-track:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#0033A0;border-radius:50%;transition:.2s}
 .tog input:checked + .tog-track:before{transform:translateX(18px)}
 
 /* Color swatches */
 .swatches{display:flex;gap:8px;flex-wrap:wrap}
 .sw{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
-.sw.on{border-color:var(--surface-selected);box-shadow:0 0 0 2px var(--brand)}
+.sw.on{border-color:#fff;box-shadow:0 0 0 2px #0033A0}
 
 /* Buttons */
 .btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:16px;
   font-weight:600;cursor:pointer;font-family:var(--sans)}
 .btn:active{opacity:.8}
-.btn-p{background:var(--btn-primary-bg);color:var(--btn-primary-text);border:1px solid var(--btn-primary-bg);font-weight:700}
-.btn-s{background:var(--btn-secondary-bg);color:var(--text-on-brand);border:1px solid var(--border-on-brand)}
+.btn-p{background:#fff;color:#0033A0;border:1px solid #fff;font-weight:700}
+.btn-s{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}
 .btn-d{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
 .btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
 .brow{display:flex;gap:10px;margin-top:18px}
@@ -211,38 +171,38 @@ html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-
   letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(--border);
   text-align:center;white-space:nowrap;background:var(--card2);position:sticky;top:0;z-index:2}
 #proto-tbl th.col-name{text-align:left;padding-left:10px}
-#proto-tbl td{padding:0;border-bottom:1px solid var(--field-bg);vertical-align:middle;
-  text-align:center;background:var(--brand);color:var(--text-on-brand)}
+#proto-tbl td{padding:0;border-bottom:1px solid rgba(255,255,255,.2);vertical-align:middle;
+  text-align:center;background:#0033A0;color:#fff}
 #proto-tbl tr:last-child td{border-bottom:none}
-#proto-tbl tr:nth-child(even) td{background:var(--surface-secondary)}
+#proto-tbl tr:nth-child(even) td{background:#0033A0}
 /* Inline editable cells */
-.ie-name{font-size:13px;font-weight:600;color:var(--text-on-brand);background:transparent;
+.ie-name{font-size:13px;font-weight:600;color:#fff;background:transparent;
   border:none;outline:none;width:100%;padding:10px 6px 10px 10px;font-family:var(--sans);
   min-width:90px}
-.ie-dose{font-size:13px;color:var(--text-on-brand);background:transparent;border:none;outline:none;
+.ie-dose{font-size:13px;color:#fff;background:transparent;border:none;outline:none;
   width:60px;padding:10px 4px;text-align:center;font-family:var(--mono)}
 .ie-name:focus,.ie-dose:focus{background:rgba(255,255,255,.1);border-radius:4px}
 /* Unit select inline */
-.ie-unit{font-size:11px;background:transparent;border:none;outline:none;color:var(--text-secondary);
+.ie-unit{font-size:11px;background:transparent;border:none;outline:none;color:#BDD4FF;
   font-family:var(--sans);font-weight:700;padding:10px 2px;cursor:pointer;-webkit-appearance:none;
   text-align:center;width:52px}
 /* AM/PM select inline */
-.ie-time{font-size:11px;background:transparent;border:none;outline:none;color:var(--text-on-brand);
+.ie-time{font-size:11px;background:transparent;border:none;outline:none;color:#fff;
   font-family:var(--sans);padding:10px 2px;cursor:pointer;-webkit-appearance:none;
   text-align:center;width:64px}
 /* Active toggle */
 .act-tog{width:36px;height:20px;border-radius:99px;border:none;cursor:pointer;
   display:inline-flex;align-items:center;padding:3px;transition:background .15s}
-.act-tog.on{background:var(--surface-selected)}.act-tog.off{background:var(--field-bg)}
-.act-knob{width:14px;height:14px;border-radius:50%;background:var(--surface-selected);transition:transform .15s;pointer-events:none}
+.act-tog.on{background:#fff}.act-tog.off{background:rgba(255,255,255,.2)}
+.act-knob{width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .15s;pointer-events:none}
 .act-tog.on .act-knob{transform:translateX(16px)}
 /* Day Y cell */
 .day-cell{width:28px;padding:8px 2px}
 .day-y{display:inline-flex;align-items:center;justify-content:center;
   width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:700;
-  cursor:pointer;border:1.5px solid var(--border-on-brand);color:var(--border-on-brand);transition:all .12s;
+  cursor:pointer;border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.3);transition:all .12s;
   user-select:none}
-.day-y.on{background:var(--surface-selected);border-color:var(--surface-selected);color:var(--brand)}
+.day-y.on{background:#fff;border-color:#fff;color:#0033A0}
 /* Edit btn */
 .col-edit{width:28px}
 .edit-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:8px 6px;font-size:14px}
@@ -271,14 +231,14 @@ tr:active td{background:var(--card2)}
 .act-pill{display:inline-flex;align-items:center;justify-content:center;
   width:36px;height:20px;border-radius:99px;cursor:pointer;border:none}
 .act-pill.on{background:var(--accent)}.act-pill.off{background:var(--border)}
-.pill-knob{width:14px;height:14px;border-radius:50%;background:var(--surface-selected);pointer-events:none;transition:transform .15s}
+.pill-knob{width:14px;height:14px;border-radius:50%;background:#fff;pointer-events:none;transition:transform .15s}
 .act-pill.on .pill-knob{transform:translateX(8px)}
 .act-pill.off .pill-knob{transform:translateX(-8px)}
 .tbadge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap}
-.tb-am{background:var(--field-bg);color:var(--text-on-brand)}
-.tb-pm{background:rgba(255,255,255,.1);color:var(--text-secondary)}
-.tb-both{background:rgba(255,255,255,.25);color:var(--text-on-brand)}
-.tb-any{background:rgba(255,255,255,.08);color:var(--text-secondary)}
+.tb-am{background:rgba(255,255,255,.2);color:#fff}
+.tb-pm{background:rgba(255,255,255,.1);color:#BDD4FF}
+.tb-both{background:rgba(255,255,255,.25);color:#fff}
+.tb-any{background:rgba(255,255,255,.08);color:#BDD4FF}
 
 /* Log */
 .li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border)}
@@ -289,7 +249,7 @@ tr:active td{background:var(--card2)}
 
 /* Inventory */
 .pb{height:4px;background:var(--border);border-radius:99px;margin-top:6px;overflow:hidden}
-.pbf{height:100%;border-radius:99px;background:var(--surface-selected)}
+.pbf{height:100%;border-radius:99px;background:#fff}
 .pbf.low{background:var(--warn)}.pbf.crit{background:var(--danger)}
 
 /* Sites */
@@ -302,7 +262,7 @@ tr:active td{background:var(--card2)}
 /* Streak */
 .streak{display:flex;gap:4px;flex-wrap:wrap}
 .sd{width:12px;height:12px;border-radius:3px;background:var(--border)}
-.sd.on{background:var(--surface-selected)}
+.sd.on{background:#fff}
 
 /* Misc */
 .empty{text-align:center;padding:44px 20px;color:var(--text2)}
@@ -316,86 +276,86 @@ tr:active td{background:var(--card2)}
 * { -webkit-overflow-scrolling: touch; }
 /* Calculator */
 .calc-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.calc-field-box{background:var(--brand);border-radius:var(--r);border:1px solid var(--field-bg);
+.calc-field-box{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
   padding:12px 14px;position:relative}
 .calc-field-letter{position:absolute;top:10px;right:12px;width:22px;height:22px;
-  border-radius:50%;background:var(--surface-selected);color:var(--brand);font-size:12px;font-weight:800;
+  border-radius:50%;background:#fff;color:#0033A0;font-size:12px;font-weight:800;
   display:flex;align-items:center;justify-content:center}
 .calc-conc-bar{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;
   font-size:13px;color:rgba(255,255,255,.7);text-align:center;margin-bottom:12px;
   min-height:40px;display:flex;align-items:center;justify-content:center}
-.calc-card{background:var(--brand);border-radius:var(--r);border:1px solid var(--field-bg);
+.calc-card{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
   padding:14px;margin-bottom:12px;touch-action:pan-y}
 .calc-section-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.55);
   text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
-.calc-result{background:var(--surface-selected);border-radius:var(--r);padding:20px;text-align:center;
-  margin-bottom:12px;border:2px solid var(--surface-selected)}
-.calc-result-lbl{font-size:11px;font-weight:700;color:var(--brand);text-transform:uppercase;
+.calc-result{background:#fff;border-radius:var(--r);padding:20px;text-align:center;
+  margin-bottom:12px;border:2px solid #fff}
+.calc-result-lbl{font-size:11px;font-weight:700;color:#0033A0;text-transform:uppercase;
   letter-spacing:1px;margin-bottom:6px}
-.calc-result-val{font-size:48px;font-weight:800;color:var(--brand);font-family:var(--mono);line-height:1}
-.calc-result-sub{font-size:14px;color:var(--brand);margin-top:6px;opacity:.7}
-.calc-mode-btn{background:rgba(255,255,255,.1);border:1px solid var(--field-bg);
+.calc-result-val{font-size:48px;font-weight:800;color:#0033A0;font-family:var(--mono);line-height:1}
+.calc-result-sub{font-size:14px;color:#0033A0;margin-top:6px;opacity:.7}
+.calc-mode-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
   color:rgba(255,255,255,.7);border-radius:10px;padding:10px 8px;font-size:13px;
   font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;
   text-align:center;line-height:1.5}
-.calc-mode-btn.active{background:var(--surface-selected);color:var(--brand);border-color:var(--text-on-brand)}
+.calc-mode-btn.active{background:#fff;color:#0033A0;border-color:#fff}
 /* Stack Summary */
 .stack-section{margin-bottom:18px}
 .stack-section-hdr{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);
   text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-left:2px}
-.stack-row{background:var(--brand);border-radius:var(--r);border:1px solid var(--field-bg);
+.stack-row{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
   padding:12px 14px;margin-bottom:8px}
 .stack-row-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .stack-cell{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
 .stack-lbl{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;
   letter-spacing:.6px;margin-bottom:3px}
-.stack-val{font-size:14px;font-weight:700;color:var(--text-on-brand)}
+.stack-val{font-size:14px;font-weight:700;color:#fff}
 
 /* Records sub-tabs */
-.rec-tab{background:rgba(255,255,255,.1);border:1px solid var(--field-bg);
+.rec-tab{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
   color:rgba(255,255,255,.6);border-radius:10px;padding:9px 4px;font-size:12px;
   font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;text-align:center}
-.rec-tab.on{background:var(--surface-selected);color:var(--brand);border-color:var(--text-on-brand)}
+.rec-tab.on{background:#fff;color:#0033A0;border-color:#fff}
 .calc-ref-row{display:flex;justify-content:space-between;align-items:center;
   padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:13px}
 .calc-ref-row:last-child{border-bottom:none}
-.calc-ref-dose{color:var(--text-on-brand);font-weight:600}
-.calc-ref-vol{color:var(--text-secondary);font-family:var(--mono)}
+.calc-ref-dose{color:#fff;font-weight:600}
+.calc-ref-vol{color:#BDD4FF;font-family:var(--mono)}
 /* Syringe visualiser */
-.syringe-wrap{background:var(--brand);border-radius:var(--r);border:1px solid var(--field-bg);padding:16px;margin-bottom:12px}
+.syringe-wrap{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);padding:16px;margin-bottom:12px}
 .syringe-wrap svg{pointer-events:none}
 .syringe-wrap svg *{pointer-events:none}
 .syringe-size-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .syringe-size-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s}
-.syringe-size-btn.on{background:var(--surface-selected);color:var(--brand);border-color:var(--text-on-brand)}
+.syringe-size-btn.on{background:#fff;color:#0033A0;border-color:#fff}
 /* Links */
-.link-card{display:flex;align-items:center;gap:14px;background:var(--brand);
-  border-radius:var(--r);border:1px solid var(--field-bg);
+.link-card{display:flex;align-items:center;gap:14px;background:#0033A0;
+  border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
   padding:16px;margin-bottom:12px;cursor:pointer;transition:opacity .15s;touch-action:pan-y}
 .link-card:active{opacity:.8}
 .link-icon{font-size:28px;flex-shrink:0}
 .link-body{flex:1;min-width:0}
-.link-title{font-size:15px;font-weight:700;color:var(--text-on-brand);margin-bottom:3px}
+.link-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:3px}
 .link-sub{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:5px;font-family:var(--mono)}
 .link-desc{font-size:12px;color:rgba(255,255,255,.75);line-height:1.4}
 .link-arrow{font-size:24px;color:rgba(255,255,255,.4);flex-shrink:0}
 /* Inventory cards */
-.inv-card{background:var(--brand);border-radius:var(--r);border:1px solid var(--field-bg);
+.inv-card{background:#0033A0;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);
   margin-bottom:12px;overflow:hidden;cursor:pointer;transition:opacity .15s}
 .inv-card:active{opacity:.85}
 .inv-card-hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 14px;background:rgba(255,255,255,.12);border-bottom:1px solid var(--btn-secondary-bg)}
+  padding:12px 14px;background:rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.15)}
 .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px}
 .inv-f{background:rgba(0,0,0,.2);border-radius:8px;padding:9px 11px}
 .inv-fl{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
-.inv-fv{font-size:15px;font-weight:700;color:var(--text-on-brand)}
+.inv-fv{font-size:15px;font-weight:700;color:#fff}
 .inv-warn .inv-fv{color:var(--warn)}
 .inv-warn .inv-fl{color:rgba(245,158,11,.7)}
 .inv-inuse-bar{display:flex;align-items:center;justify-content:space-between;
   padding:10px 14px;background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.12)}
 .inv-inuse-pill{display:inline-flex;align-items:center;gap:5px;
-  background:var(--btn-secondary-bg);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
-.inv-inuse-pill.active{background:rgba(34,197,94,.2);color:var(--success)}
+  background:rgba(255,255,255,.15);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
+.inv-inuse-pill.active{background:rgba(34,197,94,.2);color:#4ade80}
 .inv-inuse-pill.none{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
 .inv-none{color:rgba(255,255,255,.35)!important}
 .inv-card.collapsed .inv-card-body{display:none}
@@ -403,39 +363,39 @@ tr:active td{background:var(--card2)}
 .inv-card.collapsed .inv-chevron{transform:rotate(-90deg)}
 .inv-size-row{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
 .inv-size-row:last-of-type{border-bottom:none}
-.inv-size-lbl{font-size:13px;font-weight:700;color:var(--text-on-brand);margin-bottom:8px}
+.inv-size-lbl{font-size:13px;font-weight:700;color:#fff;margin-bottom:8px}
 .inv-size-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
 .inv-size-stat{background:rgba(0,0,0,.2);border-radius:6px;padding:6px 8px}
-.inv-size-val{font-size:14px;font-weight:700;color:var(--text-on-brand);margin-top:2px}
+.inv-size-val{font-size:14px;font-weight:700;color:#fff;margin-top:2px}
 .inv-size-btns{display:flex;gap:6px;flex-wrap:wrap}
-.c-ok{color:var(--success)!important}
+.c-ok{color:#4ade80!important}
 /* Date navigator */
 .date-nav{display:flex;align-items:center;justify-content:space-between;
-  background:var(--brand);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;
-  border:1px solid var(--field-bg)}
-.date-nav-btn{background:var(--btn-secondary-bg);border:1px solid var(--field-bg);
-  color:var(--text-on-brand);border-radius:8px;width:36px;height:36px;font-size:20px;cursor:pointer;
+  background:#0033A0;border-radius:var(--r);padding:10px 14px;margin-bottom:14px;
+  border:1px solid rgba(255,255,255,.2)}
+.date-nav-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:8px;width:36px;height:36px;font-size:20px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;font-family:var(--sans);flex-shrink:0}
-.date-nav-btn:active{background:var(--border-on-brand)}
+.date-nav-btn:active{background:rgba(255,255,255,.3)}
 .date-nav-btn:disabled{opacity:.3;cursor:default}
 .date-nav-center{text-align:center;flex:1}
-.date-nav-label{font-size:15px;font-weight:700;color:var(--text-on-brand)}
+.date-nav-label{font-size:15px;font-weight:700;color:#fff}
 .date-nav-sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
 .past-banner{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
   border-radius:10px;padding:8px 14px;font-size:13px;color:var(--warn);
   text-align:center;margin-bottom:12px}
 .inv-action-btns{display:flex;gap:6px}
-.inv-action-btn{background:var(--btn-secondary-bg);border:1px solid var(--field-bg);
-  color:var(--text-on-brand);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.inv-action-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
 .inv-action-btn:active{background:rgba(255,255,255,.25)}
-.inv-action-btn.open{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:var(--success)}
+.inv-action-btn.open{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:#4ade80}
 .inv-action-btn.finish{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:var(--danger)}
 /* History */
-.hist-entry{background:rgba(255,255,255,.1);border-radius:10px;border:1px solid var(--field-bg);
+.hist-entry{background:rgba(255,255,255,.1);border-radius:10px;border:1px solid rgba(255,255,255,.2);
   margin-bottom:10px;overflow:hidden}
 .hist-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;
-  background:rgba(255,255,255,.08);border-bottom:1px solid var(--btn-secondary-bg)}
-.hist-date{font-size:12px;font-weight:700;color:var(--text-disabled);font-family:var(--mono)}
+  background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.15)}
+.hist-date{font-size:12px;font-weight:700;color:#8AAEE0;font-family:var(--mono)}
 .hist-label{font-size:11px;color:var(--text2);margin-left:auto}
 .hist-body{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hist-field{background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
@@ -443,12 +403,12 @@ tr:active td{background:var(--card2)}
 .hist-field-v{font-size:13px;font-weight:600}
 .hist-days{grid-column:1/-1}
 /* Pin badge */
-.pin-badge{font-family:var(--mono);font-weight:700;color:var(--text-on-brand);white-space:nowrap;cursor:pointer}
+.pin-badge{font-family:var(--mono);font-weight:700;color:#fff;white-space:nowrap;cursor:pointer}
 /* Expiring cycle (within 7 days of end) */
 .ci.expiring{background:rgba(200,32,32,.92)}
 .ci.expiring .ci-sub{color:rgba(255,255,255,.85)}
 .snooze-btn{width:26px;height:26px;border-radius:50%;flex-shrink:0;padding:0;cursor:pointer;
-  border:1.5px solid var(--border-on-brand);background:transparent;color:var(--text-on-brand);opacity:.5;
+  border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#fff;opacity:.5;
   display:flex;align-items:center;justify-content:center}
 .snooze-btn.on{border-color:var(--warn);color:var(--warn);opacity:1}
 .ci.snoozed{opacity:.55}
@@ -456,10 +416,10 @@ tr:active td{background:var(--card2)}
 .snz-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
   background:rgba(245,158,11,.28);color:var(--warn);white-space:nowrap;margin-left:6px}
 .exp-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
-  background:rgba(255,255,255,.28);color:var(--text-on-brand);white-space:nowrap;margin-left:6px}
+  background:rgba(255,255,255,.28);color:#fff;white-space:nowrap;margin-left:6px}
 .expiry-legend-inner{display:flex;align-items:center;gap:8px;background:rgba(239,68,68,.15);
   border:1px solid rgba(239,68,68,.35);border-radius:10px;padding:8px 12px;
-  margin-bottom:12px;font-size:12px;color:var(--c-salmon)}
+  margin-bottom:12px;font-size:12px;color:#FFC4BA}
 </style>
 </head>
 <body>
@@ -468,7 +428,7 @@ tr:active td{background:var(--card2)}
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:2px">
       <!-- Logo mark -->
       <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
-        <circle cx="21" cy="21" r="21" fill="var(--brand)"/>
+        <circle cx="21" cy="21" r="21" fill="#0033A0"/>
         <circle cx="21" cy="21" r="17.5" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
         <!-- Molecule lines -->
         <g stroke="rgba(255,255,255,0.3)" stroke-width="0.8" fill="none">
@@ -492,24 +452,24 @@ tr:active td{background:var(--card2)}
         <g transform="translate(21,21) rotate(-35)">
           <rect x="-3" y="-11" width="6" height="15" rx="1.5" fill="white"/>
           <rect x="-5" y="-14" width="10" height="4" rx="1.2" fill="white"/>
-          <rect x="-1" y="-11" width="2" height="15" rx="1" fill="var(--brand)"/>
+          <rect x="-1" y="-11" width="2" height="15" rx="1" fill="#0033A0"/>
           <rect x="-2.5" y="4" width="5" height="3.5" rx="1" fill="rgba(255,255,255,0.85)"/>
           <line x1="0" y1="7.5" x2="0" y2="14" stroke="rgba(255,255,255,0.9)" stroke-width="1" stroke-linecap="round"/>
         </g>
         <!-- Centre node -->
         <circle cx="21" cy="21" r="3" fill="white"/>
-        <circle cx="21" cy="21" r="1.8" fill="var(--brand)"/>
+        <circle cx="21" cy="21" r="1.8" fill="#0033A0"/>
       </svg>
       <!-- Wordmark -->
       <div>
-        <div style="font-size:20px;font-weight:700;color:var(--brand);letter-spacing:-0.5px;line-height:1.1"><span style="font-weight:700">Peptide</span> <span style="font-weight:300">Tracker</span></div>
-        <div style="font-size:9px;color:var(--brand);opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-top:1px">Precision Protocol Tracking</div>
+        <div style="font-size:20px;font-weight:700;color:#0033A0;letter-spacing:-0.5px;line-height:1.1"><span style="font-weight:700">Peptide</span> <span style="font-weight:300">Tracker</span></div>
+        <div style="font-size:9px;color:#0033A0;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-top:1px">Precision Protocol Tracking</div>
       </div>
       <!-- Page title right aligned -->
       <div style="margin-left:auto;text-align:right;align-self:center">
-        <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
-        <div style="font-size:11px;color:var(--c-sky);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.0 · build b0724.2028</div>
+        <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
+        <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.0 · build b0726.1719</div>
       </div>
     </div>
   </div>
@@ -642,7 +602,7 @@ tr:active td{background:var(--card2)}
       <div id="oil-draw-volumes"></div>
       <div style="border-top:1px solid rgba(255,255,255,.2);margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:13px;color:rgba(255,255,255,.7)">Total volume</span>
-        <span style="font-size:20px;font-weight:800;color:var(--text-on-brand);font-family:var(--mono)" id="oil-total-vol">0.00 ml</span>
+        <span style="font-size:20px;font-weight:800;color:#fff;font-family:var(--mono)" id="oil-total-vol">0.00 ml</span>
       </div>
     </div>
 
@@ -709,7 +669,7 @@ tr:active td{background:var(--card2)}
       <div class="ampm" id="ampm"></div>
       <div class="tickall hidden" id="tickall">
         <div class="tickall-row" onclick="tickAll()">
-          <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="chk" id="tick-chk"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           <span class="tickall-lbl">Tick All Done</span>
           <span id="tick-cnt" style="font-size:12px;color:var(--text2);margin-left:auto;font-family:var(--mono)"></span>
         </div>
@@ -854,7 +814,7 @@ tr:active td{background:var(--card2)}
     <div id="pg-stack" class="pg hidden">
       <div id="stack-content"></div>
 
-      <div style="background:var(--brand);border:1px solid rgba(255,255,255,.2);border-radius:var(--r);padding:14px;margin-top:4px">
+      <div style="background:#0033A0;border:1px solid rgba(255,255,255,.2);border-radius:var(--r);padding:14px;margin-top:4px">
         <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:12px;line-height:1.5">Copy your stack as an AI-ready prompt and paste into ChatGPT, Claude, Gemini or any AI assistant for a detailed analysis.</div>
         <button class="btn btn-p" onclick="copyStackPrompt()" id="copy-stack-btn" style="font-size:14px">Copy Stack for AI Analysis</button>
         <div id="copy-stack-confirm" style="font-size:12px;color:var(--success);margin-top:8px;display:none;text-align:center">✓ Prompt copied — paste into your AI of choice</div>
@@ -1192,6 +1152,9 @@ tr:active td{background:var(--card2)}
 // ═══════════════════════════════════════════════════════════
 const APP_VERSION = '2.0';
 const CURRENT_SCHEMA = 2;
+const APP_KEYS = ['protocol_data','pt_backup','saved_doses','saved_stacks',
+  'pt_cycle_reminded','pt_last_backup_remind','pt_premigration_v1',
+  'pt_migration_temp','pt_preimport_backup'];
 
 function esc(v){
   if(v===undefined||v===null) return '';
@@ -1226,6 +1189,22 @@ function safeParse(str,fallback){
   if(str===null||str===undefined) return fallback;
   try{ const v=JSON.parse(str); return (v===null||v===undefined)?fallback:v; }catch(e){ return fallback; }
 }
+// ── Canonical JSON persistence ────────────────────────────────
+// safeWriteJson is THE way to write objects to storage. Do not call
+// safeSet(JSON.stringify(...)) elsewhere — route through this.
+function safeStringify(value){
+  try{ return {ok:true, json:JSON.stringify(value)}; }
+  catch(e){ console.error('safeStringify failed',e); return {ok:false, reason:'serialise', error:e}; }
+}
+function safeWriteJson(key,value,verify){
+  const ser=safeStringify(value);
+  if(!ser.ok) return {ok:false, reason:'serialise', error:ser.error};
+  const wr=safeSet(key,ser.json);
+  if(!wr.ok) return {ok:false, reason:wr.reason||'write', error:wr.error};
+  if(verify && safeGet(key)!==ser.json) return {ok:false, reason:'verify'};
+  return {ok:true, json:ser.json};
+}
+function safeReadJson(key,fallback){ return safeParse(safeGet(key),fallback); }
 
 function numState(v){
   if(v===''||v===null||v===undefined) return 'missing';
@@ -1336,7 +1315,7 @@ let viewDate=''; // set in init()
 let fColor=COLORS[0], fSite='';
 
 function save(){
-  const res=safeSet('protocol_data',JSON.stringify(D));
+  const res=safeWriteJson('protocol_data', D);
   if(!res.ok){
     const msg = res.reason==='quota'
       ? 'Storage is full. Your latest change may not be saved. Export a backup, then clear old data.'
@@ -1381,6 +1360,14 @@ function needsMigration(data){
   if(!data || typeof data!=='object') return false;
   return !(typeof data.schema==='number' && data.schema>=CURRENT_SCHEMA);
 }
+// 'migrate' | 'current' | 'future' | 'invalid'
+function schemaStatus(data){
+  if(!data || typeof data!=='object' || !Array.isArray(data.compounds)) return 'invalid';
+  const sc=data.schema;
+  if(typeof sc!=='number' || sc<CURRENT_SCHEMA) return 'migrate';
+  if(sc===CURRENT_SCHEMA) return 'current';
+  return 'future';
+}
 
 // Build a migrated candidate from a v1/unversioned payload. Never mutates input.
 function migrateToCurrentSchema(data){
@@ -1412,45 +1399,59 @@ function validateCandidate(cand){
 
 // Two-phase transactional migration. Returns {ok, flags?, error?}.
 function runMigration(sourcePayload){
+  // 0. capture EXACT raw primary up-front for guaranteed rollback + recovery backup.
+  const originalPrimaryRaw = safeGet(PRIMARY_KEY);
   // 1. clone + build candidate
   const {candidate, flags} = migrateToCurrentSchema(sourcePayload);
   // 2. validate in memory
   const vErr = validateCandidate(candidate);
   if(vErr) return {ok:false, error:'Validation failed: '+vErr};
   const json = JSON.stringify(candidate);
-  // 3. write pre-migration backup FIRST, confirm it
-  const origJson = JSON.stringify(sourcePayload);
-  if(!safeSet(MIG_BACKUP_KEY, origJson).ok) return {ok:false, error:'Could not write pre-migration backup.'};
-  if(safeGet(MIG_BACKUP_KEY)!==origJson)    return {ok:false, error:'Pre-migration backup read-back failed.'};
+  // 3. preserve EXACT original primary (or source payload if primary was absent) + verify.
+  const recoveryRaw = (originalPrimaryRaw!==null) ? originalPrimaryRaw : JSON.stringify(sourcePayload);
+  if(!safeSet(MIG_BACKUP_KEY, recoveryRaw).ok) return {ok:false, error:'Could not write pre-migration backup.'};
+  if(safeGet(MIG_BACKUP_KEY)!==recoveryRaw)    return {ok:false, error:'Pre-migration backup read-back failed.'};
   // 4. write candidate to temp key, read back + validate
   if(!safeSet(MIG_TEMP_KEY, json).ok)       return {ok:false, error:'Could not write migration candidate.'};
   const tempBack = safeGet(MIG_TEMP_KEY);
   if(tempBack!==json)                        return {ok:false, error:'Candidate read-back mismatch.'};
   if(validateCandidate(safeParse(tempBack,null))) return {ok:false, error:'Persisted candidate invalid.'};
-  // 5. commit to primary key, read back + validate
-  if(!safeSet(PRIMARY_KEY, json).ok)        return {ok:false, error:'Could not write primary key.'};
-  if(safeGet(PRIMARY_KEY)!==json)            return {ok:false, error:'Primary read-back mismatch.'};
+  // 5. commit to primary + read-back + validate; on ANY failure restore exact original.
+  const restore=(reason)=>{
+    if(originalPrimaryRaw!==null){
+      safeSet(PRIMARY_KEY, originalPrimaryRaw);
+      if(safeGet(PRIMARY_KEY)!==originalPrimaryRaw)
+        return {ok:false, critical:true, error:reason+' AND rollback failed — original is preserved in '+MIG_BACKUP_KEY+'.'};
+    } else { safeRemove(PRIMARY_KEY); }
+    return {ok:false, error:reason+' Your original data was restored unchanged.'};
+  };
+  if(!safeSet(PRIMARY_KEY, json).ok) return restore('Could not write primary key.');
+  if(safeGet(PRIMARY_KEY)!==json)    return restore('Primary read-back mismatch.');
+  if(validateCandidate(safeParse(safeGet(PRIMARY_KEY),null))) return restore('Committed primary failed validation.');
   // 6. remove temp only; RETAIN pre-migration backup
   safeRemove(MIG_TEMP_KEY);
   return {ok:true, flags:flags, candidate:candidate};
 }
 
-let _migrationFlags=[]; let _migrationError=null;
+let _migrationFlags=[]; let _migrationError=null; let _blockAutosave=false; let _recoveryNotice=null;
 function load(){
-  const r=localStorage.getItem('protocol_data');
-  const backup=localStorage.getItem('pt_backup');
-
-  // Pick the best source: whichever has more logs
+  // Source selection: protocol_data is authoritative; pt_backup is recovery only.
+  // No log-count heuristic. Future schemas are rejected, not loaded.
+  const primary=safeParse(safeGet('protocol_data'),null);
+  const pStatus=primary?schemaStatus(primary):'invalid';
   let best=null;
-  if(r){try{best=JSON.parse(r);}catch(e){}}
-  if(backup){
-    try{
-      const b=JSON.parse(backup);
-      const bestLogs=(best&&best.logs)||[];
-      const bLogs=b.logs||[];
-      // Use backup if it has more logs (means protocol_data was reset by code update)
-      if(bLogs.length>bestLogs.length) best=b;
-    }catch(e){}
+  if(primary && (pStatus==='current'||pStatus==='migrate')){
+    best=primary;                                   // normal, authoritative path
+  } else if(pStatus==='future'){
+    // Newer app wrote this — do not downgrade or overwrite it.
+    _migrationError='This data was created by a newer app version (schema '+primary.schema+'). Update the app to open it. Your data has not been changed.';
+    _blockAutosave=true;
+    return;
+  } else {
+    // Primary missing/malformed → recover from backup only.
+    const backup=safeParse(safeGet('pt_backup'),null);
+    const bStatus=backup?schemaStatus(backup):'invalid';
+    if(backup && (bStatus==='current'||bStatus==='migrate')){ best=backup; _recoveryNotice='Your main data was missing or unreadable, so it was recovered from your last backup.'; }
   }
 
   if(best&&best.compounds&&best.compounds.length){
@@ -1461,10 +1462,12 @@ function load(){
         best=res.candidate;
         _migrationFlags=res.flags||[];
       } else {
-        // migration failed — keep loading the ORIGINAL data untouched, warn later
+        // migration failed — keep ORIGINAL data untouched, block autosave, warn later
         _migrationError=res.error;
+        _blockAutosave=true;
       }
     }
+    if(_migrationError){ return; }   // do not commit a failed-migration candidate
     D.compounds = best.compounds;
     D.logs      = best.logs      || [];
     D.inventory = best.inventory || [];
@@ -1472,7 +1475,7 @@ function load(){
     D.skips     = best.skips     || [];
     D.schema    = best.schema    || undefined;
     // keep in sync only when no migration error (migration already wrote primary)
-    if(!_migrationError && !needsMigration(D)) safeSet('protocol_data', JSON.stringify(D));
+    if(!_migrationError && !needsMigration(D)) safeWriteJson('protocol_data', D);
     if(!D.inventory.length){ D.inventory=defaultInventory(); save(); }
   } else {
     D.compounds = DEFAULTS.map(x=>({...x}));
@@ -3012,10 +3015,10 @@ function calcOil(){try{
 }catch(e){console.error("calcOil error:",e.message,e.stack);}
 }
 // ─── SAVED DOSES / STACKS ────────────────────────────────────
-function getSavedDoses(){ try{return JSON.parse(localStorage.getItem('saved_doses')||'[]');}catch(e){return[];} }
-function putSavedDoses(arr){ safeSet('saved_doses', JSON.stringify(arr)); }
-function getSavedStacks(){ try{return JSON.parse(localStorage.getItem('saved_stacks')||'[]');}catch(e){return[];} }
-function putSavedStacks(arr){ safeSet('saved_stacks', JSON.stringify(arr)); }
+function getSavedDoses(){ try{return JSON.parse(safeGet('saved_doses')||'[]');}catch(e){return[];} }
+function putSavedDoses(arr){ safeWriteJson('saved_doses', arr); }
+function getSavedStacks(){ try{return JSON.parse(safeGet('saved_stacks')||'[]');}catch(e){return[];} }
+function putSavedStacks(arr){ safeWriteJson('saved_stacks', arr); }
 
 function populateSavedDoseSelect(){try{
   const sel=document.getElementById('pep-saved-select');
@@ -3424,19 +3427,27 @@ async function masterReset(){
   // Step 1: First confirmation
   if(!(await ptConfirm('⚠️ MASTER RESET\n\nThis will permanently delete ALL data including:\n• All compounds & protocols\n• All dose logs\n• All inventory\n• All history\n\nThis cannot be undone.\n\nAre you sure?'))) return;
   // Step 2: Second confirmation to prevent accidental wipes
-  if(!(await ptConfirm('Are you absolutely sure?\n\nType OK to confirm — this will wipe everything and reload the default compounds.'))) return;
-  // Clear all storage
-  localStorage.removeItem('protocol_data');
-  ['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v5','pt_v6','pt_v7'].forEach(k=>localStorage.removeItem(k));
-  // Reload fresh
-  D={compounds:[],logs:[],inventory:[],history:[],skips:[]};
-  load();
+  if(!(await ptConfirm('This erases ALL data on this device, including every backup (migration and pre-import recovery copies). This cannot be undone.','Confirm erase'))) return;
+  // Genuine typed confirmation (wording now matches behaviour).
+  const typed = await ptPrompt('Type RESET (capitals) to confirm erasing everything on this device.', {placeholder:'RESET'});
+  if(typed===null) return;
+  if((typed||'').trim().toUpperCase()!=='RESET'){ await ptAlert('Reset cancelled — text did not match.'); return; }
+  // Remove every app-owned key (incl. all backups) via safeRemove — no resurrection.
+  APP_KEYS.forEach(k=>safeRemove(k));
+  ['ptv5','ptv6','ptv7','ptv8','pt_v1','pt_v2','pt_v3','pt_v4','pt_v6','pt_v7'].forEach(k=>safeRemove(k));
+  // Build clean default state directly — do NOT call the recovery-oriented load().
+  const clean={compounds:DEFAULTS.map(x=>({...x})),logs:[],inventory:defaultInventory(),history:[],skips:[],schema:CURRENT_SCHEMA};
+  // Persist + verify BEFORE announcing success.
+  const wr=safeWriteJson('protocol_data', clean, true);
+  if(!wr.ok){ await ptAlert('Reset could not be completed — writing clean state failed ('+(wr.reason||'error')+'). Nothing was reset.','Reset failed'); return; }
+  D=JSON.parse(JSON.stringify(clean));
+  _migrationError=null; _blockAutosave=false; _recoveryNotice=null;
   render();
-  ptAlert('Reset complete. All data cleared and default compounds loaded.');
+  await ptAlert('Reset complete. All app data was erased and the default compounds restored.');
 }
 
 async function checkBackupReminder(){try{
-  const lastRemind=localStorage.getItem('pt_last_backup_remind');
+  const lastRemind=safeGet('pt_last_backup_remind');
   const now=Date.now();
   const ONE_WEEK=7*24*60*60*1000;
   if(!lastRemind||now-parseInt(lastRemind)>ONE_WEEK){
@@ -3499,34 +3510,46 @@ function importFromFile(input){
       // reject a schema newer than this app understands
       if(typeof imported.schema==='number' && imported.schema>CURRENT_SCHEMA)
         throw new Error('This backup is from a newer app version (schema '+imported.schema+'). Update the app first.');
-      // migrate older/unversioned in memory
+      // migrate older/unversioned in memory; ALWAYS validate regardless of schema.
       let candidate=imported;
       let importFlags=[];
       if(needsMigration(imported)){
         const {candidate:cand, flags}=migrateToCurrentSchema(imported);
-        const vErr=validateCandidate(cand);
-        if(vErr) throw new Error('Backup could not be migrated: '+vErr);
         candidate=cand; importFlags=flags;
       }
+      const vErr=validateCandidate(candidate);           // validate EVERY candidate, incl. schema-2
+      if(vErr) throw new Error('This backup failed validation: '+vErr);
       const flagNote = importFlags.length ? '\n\n'+importFlags.length+' compound(s) need a concentration set after import.' : '';
       if(!(await ptConfirm('Restore from "'+file.name+'"?\n\nCompounds: '+candidate.compounds.length+'\nLogs: '+(candidate.logs||[]).length+'\nInventory: '+(candidate.inventory||[]).length+flagNote+'\n\nThis replaces all current data.'))){ input.value=''; return; }
-      // back up CURRENT state before overwriting
-      safeSet('pt_preimport_backup', JSON.stringify(D));
-      // build + validate + persist transactionally
-      const cJson=JSON.stringify(candidate);
-      const wr=safeSet(PRIMARY_KEY, cJson);
-      if(!wr.ok) throw new Error('Could not save imported data ('+wr.reason+'). Your current data is unchanged.');
-      if(safeGet(PRIMARY_KEY)!==cJson) throw new Error('Read-back failed. Your current data is unchanged.');
-      // commit to live state only after successful persistence
-      D.compounds=candidate.compounds||[];
-      D.logs=candidate.logs||[];
-      D.inventory=candidate.inventory||[];
-      D.history=candidate.history||[];
-      D.skips=candidate.skips||[];
-      D.schema=CURRENT_SCHEMA;
-      safeSet('pt_backup', JSON.stringify(D));
+
+      // Transactional commit. Capture exact current primary for rollback.
+      const prevPrimaryRaw = safeGet(PRIMARY_KEY);
+      // 1. pre-import recovery backup + verify (checked, not fire-and-forget).
+      const pib = safeWriteJson('pt_preimport_backup', D, true);
+      if(!pib.ok) throw new Error('Could not write a pre-import safety backup ('+(pib.reason||'error')+'). Nothing was changed.');
+      // 2. serialise + write to TEMP import key, read back + validate.
+      const ser=safeStringify(candidate);
+      if(!ser.ok) throw new Error('Could not serialise the imported data. Nothing was changed.');
+      if(!safeSet('pt_migration_temp', ser.json).ok) throw new Error('Could not stage the import. Nothing was changed.');
+      if(safeGet('pt_migration_temp')!==ser.json) throw new Error('Import staging read-back failed. Nothing was changed.');
+      // 3. commit to primary, read back + validate. Roll back exactly on any failure.
+      const rollback=(reason)=>{
+        if(prevPrimaryRaw!==null){ safeSet(PRIMARY_KEY, prevPrimaryRaw);
+          if(safeGet(PRIMARY_KEY)!==prevPrimaryRaw) return reason+' AND rollback failed — recover from pt_preimport_backup.';
+        } else { safeRemove(PRIMARY_KEY); }
+        return reason+' Your previous data was restored.';
+      };
+      if(!safeSet(PRIMARY_KEY, ser.json).ok) throw new Error(rollback('Could not save imported data.'));
+      if(safeGet(PRIMARY_KEY)!==ser.json)    throw new Error(rollback('Import read-back failed.'));
+      if(validateCandidate(safeReadJson(PRIMARY_KEY,null))) throw new Error(rollback('Imported data failed post-write validation.'));
+      safeRemove('pt_migration_temp');
+      // 4. commit to live state only after verified persistence.
+      D.compounds=candidate.compounds||[]; D.logs=candidate.logs||[];
+      D.inventory=candidate.inventory||[]; D.history=candidate.history||[];
+      D.skips=candidate.skips||[]; D.schema=CURRENT_SCHEMA;
+      const bk=safeWriteJson('pt_backup', D, true);
       render(); renderStorageUsage();
-      ptAlert('Data restored successfully.');
+      await ptAlert('Data restored successfully.'+(bk.ok?'':' (Note: the secondary backup copy could not be written.)'));
     } catch(err){
       ptAlert('Restore failed: '+err.message);
     }
@@ -3592,7 +3615,7 @@ async function manualSave(){
   // Bounded, immutable history (spec §18 retention)
   D.history = applyHistoryRetention(D.history);
   save();
-  safeSet('pt_backup', JSON.stringify(D));
+  safeWriteJson('pt_backup', D);
   render();
   renderStorageUsage();
   const el=document.getElementById('save-confirm');
@@ -3672,8 +3695,8 @@ function openLink(url){
 document.addEventListener('visibilitychange', function(){
   if(document.visibilityState==='hidden') save();
 });
-window.addEventListener('pagehide', function(){ save(); });
-window.addEventListener('beforeunload', function(){ save(); });
+window.addEventListener('pagehide', function(){ if(!_blockAutosave) save(); });
+window.addEventListener('beforeunload', function(){ if(!_blockAutosave) save(); });
 
 function init(){
   // Show today tab by default
@@ -3709,7 +3732,7 @@ function getCompoundEndDate(c){
 
 function checkCycleEndReminders(){
   const today = tod();
-  const reminded = JSON.parse(localStorage.getItem('pt_cycle_reminded')||'{}');
+  const reminded = JSON.parse(safeGet('pt_cycle_reminded')||'{}');
   const expired = [];
 
   D.compounds.filter(c=>c.active).forEach(c=>{
@@ -3928,7 +3951,7 @@ function scheduleCycleNext(cid, key, listIdx){
   // Mark as reminded
   const reminded = _cycleReminderReminded;
   reminded[key] = tod();
-  safeSet('pt_cycle_reminded', JSON.stringify(reminded));
+  safeWriteJson('pt_cycle_reminded', reminded);
 
   save();
   render();
@@ -3945,7 +3968,7 @@ function dismissCycleReminder(key, listIdx){
   const list = _cycleReminderList;
   const reminded = _cycleReminderReminded;
   reminded[key] = 'snoozed';
-  safeSet('pt_cycle_reminded', JSON.stringify(reminded));
+  safeWriteJson('pt_cycle_reminded', reminded);
   document.getElementById('cycle-reminder-overlay')?.remove();
   // Show next in queue
   setTimeout(()=>showCycleReminder(list, listIdx+1, reminded), 300);
