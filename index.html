@@ -469,7 +469,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.0 · build b0726.1727</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.0 · build b0726.1732</div>
       </div>
     </div>
   </div>
@@ -2818,8 +2818,8 @@ function openLog(pid){
   document.getElementById('l-pid').innerHTML=D.compounds.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   if(pid) document.getElementById('l-pid').value=pid;
   prefillLog();
-  const now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
-  document.getElementById('l-time').value=localDateTimeStr(now);
+  // localDateTimeStr already returns LOCAL date/time — do not apply the offset again.
+  document.getElementById('l-time').value=localDateTimeStr(new Date());
   document.getElementById('l-notes').value='';
   fSite='';
   document.querySelectorAll('.site').forEach(s=>s.classList.remove('on'));
@@ -2835,7 +2835,7 @@ function saveLog(){
   const dose=document.getElementById('l-dose').value;
   if(!pid||!dose){ptAlert('Select a compound and enter a dose.');return;}
   D.logs.push({id:uid(),pid,dose,unit:document.getElementById('l-unit').value,
-    site:fSite,t:document.getElementById('l-time').value||new Date().toISOString(),
+    site:fSite,t:document.getElementById('l-time').value||localDateTimeStr(new Date()),
     notes:document.getElementById('l-notes').value});
   save();render();closeOv('ov-log');
 }
@@ -2991,7 +2991,7 @@ function setOilSyringe(ml,btn){
   document.querySelectorAll('#calc-oil .syringe-size-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');calcOil();
 }
-function toMgNorm(amount,unit){return unit==='mcg'?amount/1000:amount;}
+
 function calcOil(){try{
   const syrCard=document.getElementById('oil-syringe-card');
   if(syrCard) syrCard.style.display='block';
@@ -3002,12 +3002,17 @@ function calcOil(){try{
   }
   let totalVol=0;let breakdown=[];let anyValid=false;
   oilCompounds.forEach((c,i)=>{
-    const conc=parseFloat(c.conc)||0;const dose=parseFloat(c.dose)||0;
     const el=document.getElementById('oil-result-'+c.id);
-    if(!conc||!dose){if(el)el.textContent='';return;}
-    const vol=toMgNorm(dose,c.doseUnit)/toMgNorm(conc,c.unit);
-    totalVol+=vol;anyValid=true;
-    if(el)el.textContent=`→ ${vol.toFixed(3)} ml for ${dose} ${c.doseUnit}`;
+    // Canonical oil calculation — rejects blank/zero/negative/NaN/Infinity and unit-family errors.
+    const r=oilCalc({conc:c.conc, concUnit:c.unit, dose:c.dose, doseUnit:c.doseUnit});
+    if(!r.ok){
+      // Show a row-level message only if the user has started entering values.
+      if(el) el.textContent=(c.conc||c.dose)?('⚠ '+r.error):'';
+      return;
+    }
+    const vol=r.ml;
+    totalVol+=vol; anyValid=true;
+    if(el)el.textContent=`→ ${vol.toFixed(3)} ml for ${c.dose} ${c.doseUnit}`;
     breakdown.push({name:c.name||'Compound '+(i+1),vol,color:OIL_COLORS[i%5]});
   });
   const rc=document.getElementById('oil-result-card');
@@ -3383,11 +3388,17 @@ function calcFromVol(){
   if(!conc||!units){resultEl.classList.add('hidden');return;}
 
   const volMl=units*0.01; // convert units to ml
-  const doseInVialUnit=volMl*conc;
+  const doseInVialUnit=volMl*conc; // in the SAME family as the vial (mg, mcg, or IU)
   let displayDose, displayUnit;
-  const doseInMcg=toMcg(doseInVialUnit,vialUnit);
-  if(doseInMcg>=1000){displayDose=(doseInMcg/1000).toFixed(3);displayUnit='mg';}
-  else{displayDose=doseInMcg.toFixed(1);displayUnit='mcg';}
+  if(vialUnit==='IU'){
+    // IU vials produce IU doses — never convert to mcg/mg.
+    displayDose=doseInVialUnit.toFixed(2); displayUnit='IU';
+  } else {
+    // mass family: normalise to mcg then choose mg/mcg for readability.
+    const doseInMcg=toMcg(doseInVialUnit,vialUnit);
+    if(doseInMcg>=1000){displayDose=(doseInMcg/1000).toFixed(3);displayUnit='mg';}
+    else{displayDose=doseInMcg.toFixed(1);displayUnit='mcg';}
+  }
 
   // Populate C field
   document.getElementById('c-dose').value=displayDose;
@@ -3406,15 +3417,22 @@ function updateQuickRef(){try{
   const vialUnit=document.getElementById('c-vialUnit').value;
   const el=document.getElementById('calc-quick-ref');
   if(!conc){el.innerHTML='<span style="color:rgba(255,255,255,.5)">Enter A and B to see the chart.</span>';return;}
-  const concMcg=toMcg(conc,vialUnit);
+  const isIU = vialUnit==='IU';
+  const concMcg = isIU ? null : toMcg(conc,vialUnit);
   // Common ml volumes for a U-100 syringe (every 5 units = 0.05ml)
   const marks=[5,10,15,20,25,30,40,50,60,70,80,100];
   el.innerHTML=
     '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px"><span>Syringe mark</span><span style="text-align:right">Dose</span></div>'+
     marks.map(u=>{
       const v=u*0.01;
-      const d=v*concMcg;
-      const dStr=d>=1000?(d/1000).toFixed(3)+' mg':d.toFixed(1)+' mcg';
+      let dStr;
+      if(isIU){
+        // IU vials produce IU doses — never convert to mcg/mg.
+        dStr=(v*conc).toFixed(2)+' IU';
+      } else {
+        const d=v*concMcg;
+        dStr=d>=1000?(d/1000).toFixed(3)+' mg':d.toFixed(1)+' mcg';
+      }
       return`<div class="calc-ref-row">
         <span class="calc-ref-dose">${u} units</span>
         <span class="calc-ref-vol">${dStr}</span>
