@@ -469,7 +469,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.0 · build b0726.1719</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.0 · build b0726.1727</div>
       </div>
     </div>
   </div>
@@ -1215,6 +1215,17 @@ function numState(v){
   return 'valid';
 }
 function isPosFinite(v){ const n=Number(v); return Number.isFinite(n)&&n>0; }
+// Explicit numeric parse: returns {ok, value} distinguishing blank/zero/neg/NaN/Infinity.
+// mode 'pos' requires >0; 'nonneg' allows 0. Blank is never silently coerced.
+function parseNum(raw, mode){
+  if(raw===''||raw===null||raw===undefined) return {ok:false, reason:'blank'};
+  const n=Number(raw);
+  if(Number.isNaN(n)) return {ok:false, reason:'nan'};
+  if(!Number.isFinite(n)) return {ok:false, reason:'infinite'};
+  if(n<0) return {ok:false, reason:'negative'};
+  if(mode==='pos' && n===0) return {ok:false, reason:'zero'};
+  return {ok:true, value:n};
+}
 
 function reconstitutionCalc(inp){
   const {vialAmt,vialUnit,bac,dose,doseUnit} = inp;
@@ -1934,7 +1945,9 @@ function inlineName(pid,el){
 }
 function inlineDose(pid,el){
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
-  c.dose=parseFloat(el.value)||c.dose;save();
+  const r=parseNum(el.value,'pos');
+  if(!r.ok){ el.value=c.dose; return; }   // reject blank/zero/neg/NaN — keep prior, restore display
+  c.dose=r.value; save();
 }
 function inlineUnit(pid,el){
   const c=D.compounds.find(x=>x.id===pid);if(!c)return;
@@ -2443,9 +2456,8 @@ async function restoreSnap(hid){
   const h=D.history.find(x=>x.id===hid);if(!h)return;
   if(!(await ptConfirm('Restore this version? Current protocol will be saved to history first.'))) return;
   const idx=D.compounds.findIndex(x=>x.id===h.cid);if(idx===-1)return;
-  // Archive current before restoring
-  const cur={...D.compounds[idx]};
-  D.history.push({id:uid(),cid:cur.id,name:cur.name,savedAt:new Date().toISOString(),snap:cur});
+  // Archive current before restoring (canonical deep snapshot).
+  snapshotCompound(D.compounds[idx], 'pre-restore');
   // Restore
   D.compounds[idx]={...h.snap};
   save();render();rHist();
@@ -2739,18 +2751,10 @@ function saveForm(){
 
   if(id){
     const idx=D.compounds.findIndex(x=>x.id===id);if(idx===-1)return;
-    // Snapshot current protocol before overwriting
-    const snap={...D.compounds[idx]};
-    if(!D.history) D.history=[];
-    D.history.push({
-      id:uid(),
-      cid:id,
-      name:snap.name,
-      savedAt:new Date().toISOString(),
-      snap
-    });
+    // Snapshot current protocol before overwriting (canonical deep snapshot).
+    snapshotCompound(D.compounds[idx], 'edit');
     D.compounds[idx]={...D.compounds[idx],
-      dose:parseFloat(document.getElementById('f-dose').value)||D.compounds[idx].dose,
+      dose:(function(){const r=parseNum(document.getElementById('f-dose').value,'pos');return r.ok?r.value:D.compounds[idx].dose;})(),
       unit:document.getElementById('f-unit').value,
       route:document.getElementById('f-route').value,
       doseNotes:document.getElementById('f-doseNotes').value,
@@ -3100,8 +3104,7 @@ async function pushDoseToProtocol(savedIdx){
   const c=D.compounds[idx];
   if(!await ptConfirm('Update '+esc(c.name)+' protocol with:\n\u2022 Dose: '+d.dose+' '+d.doseUnit+
     '\n\u2022 Vial: '+d.vialAmt+' '+d.vialUnit+'\n\u2022 BAC Water: '+d.bac+' ml\n\nThis will overwrite the current settings.')) return;
-  if(!D.history) D.history=[];
-  D.history.push({id:uid(),cid,name:c.name,savedAt:new Date().toISOString(),snap:{...c}});
+  snapshotCompound(c, 'calc-push');
   D.compounds[idx]={...c, dose:parseFloat(d.dose)||c.dose, unit:d.doseUnit||c.unit,
     vialSize:d.vialAmt||c.vialSize, vialUnit:d.vialUnit||c.vialUnit, bacWater:d.bac||c.bacWater};
   save(); render();
@@ -3583,44 +3586,47 @@ function renderStorageUsage(){
 }
 // History retention (spec §18): newest 12 ∪ last 6 months, hard cap 20, newest never pruned.
 function applyHistoryRetention(history){
-  const arr=(history||[]).slice().sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
-  if(arr.length<=12) return arr;
+  // PER-COMPOUND retention: each compound keeps its own bounded audit trail so that
+  // editing one compound frequently never prunes another compound's history.
+  // Rule per compound: newest 12 UNION snapshots from the last 6 months, deduped,
+  // sorted newest-first, hard cap 20, newest never pruned.
+  const all=(history||[]).slice();
   const sixMonthsAgo=new Date(); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth()-6);
   const cutoff=sixMonthsAgo.toISOString();
-  const newest12=arr.slice(0,12);
-  const recent=arr.filter(h=> (h.savedAt||'') >= cutoff);
-  // union (dedupe by id, else by reference)
-  const seen=new Set(); const union=[];
-  [...newest12, ...recent].forEach(h=>{
-    const k=h.id||JSON.stringify(h);
-    if(!seen.has(k)){ seen.add(k); union.push(h); }
+  const byCid={};
+  all.forEach(h=>{ const k=h.cid||'_'; (byCid[k]=byCid[k]||[]).push(h); });
+  const kept=[];
+  Object.values(byCid).forEach(arr=>{
+    arr.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
+    if(arr.length<=12){ kept.push(...arr); return; }
+    const newest12=arr.slice(0,12);
+    const recent=arr.filter(h=> (h.savedAt||'') >= cutoff);
+    const seen=new Set(); const union=[];
+    [...newest12, ...recent].forEach(h=>{
+      const key=h.id||JSON.stringify(h);
+      if(!seen.has(key)){ seen.add(key); union.push(h); }
+    });
+    union.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
+    kept.push(...union.slice(0,20));
   });
-  union.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
-  return union.slice(0,20);   // hard cap; newest kept because sorted newest-first
+  // return newest-first overall (stable for date-view rendering)
+  return kept.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
 }
 
 async function manualSave(){
-  // Snapshot ALL compounds to history on every Save & Update
-  if(!D.history) D.history=[];
-  const now = new Date().toISOString();
-  D.compounds.forEach(c=>{
-    D.history.push({
-      id:uid(),
-      cid:c.id,
-      name:c.name,
-      savedAt:now,
-      snap:{...c}
-    });
-  });
-  // Bounded, immutable history (spec §18 retention)
-  D.history = applyHistoryRetention(D.history);
-  save();
-  safeWriteJson('pt_backup', D);
+  // Snapshot ALL compounds via the canonical deep-snapshot path (applies retention).
+  D.compounds.forEach(c=> snapshotCompound(c, 'save-update'));
+  const okPrimary=save();
+  const bk=safeWriteJson('pt_backup', D);
   render();
   renderStorageUsage();
-  const el=document.getElementById('save-confirm');
-  el.style.display='block';
-  setTimeout(()=>el.style.display='none', 2000);
+  if(okPrimary){
+    // Only show the success confirmation when persistence actually succeeded.
+    const el=document.getElementById('save-confirm');
+    if(el){ el.style.display='block'; setTimeout(()=>el.style.display='none', 2000); }
+    if(!bk.ok){ ptAlert('Your data was saved, but the secondary backup copy could not be written.','Partial save'); }
+  }
+  // If save() failed it has already shown a "Save failed" alert; no success banner.
 }
 
 
