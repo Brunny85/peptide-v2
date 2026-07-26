@@ -222,7 +222,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
   text-align:center;white-space:nowrap;background:var(--card2);position:sticky;top:0;z-index:2}
 #proto-tbl th.col-name{text-align:left;padding-left:10px}
 #proto-tbl td{padding:0;border-bottom:1px solid var(--surface-interactive);vertical-align:middle;
-  text-align:center;background:var(--brand);color:var(--text-primary)}
+  text-align:center;background:var(--surface-primary);color:var(--text-primary)}
 #proto-tbl tr:last-child td{border-bottom:none}
 #proto-tbl tr:nth-child(even) td{background:var(--brand)}
 /* Inline editable cells */
@@ -250,7 +250,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .day-cell{width:28px;padding:8px 2px}
 .day-y{display:inline-flex;align-items:center;justify-content:center;
   width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:700;
-  cursor:pointer;border:1.5px solid var(--border-primary);color:var(--border-primary);transition:all .12s;
+  cursor:pointer;border:1.5px solid var(--border-primary);color:var(--text-muted);transition:all .12s;
   user-select:none}
 .day-y.on{background:var(--surface-primary);border-color:var(--text-primary);color:var(--brand)}
 /* Edit btn */
@@ -326,7 +326,7 @@ tr:active td{background:var(--card2)}
 * { -webkit-overflow-scrolling: touch; }
 /* Calculator */
 .calc-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.calc-field-box{background:var(--brand);border-radius:var(--r);border:1px solid var(--surface-interactive);
+.calc-field-box{background:var(--surface-primary);border-radius:var(--r);border:1px solid var(--surface-interactive);
   padding:12px 14px;position:relative}
 .calc-field-letter{position:absolute;top:10px;right:12px;width:22px;height:22px;
   border-radius:50%;background:var(--surface-primary);color:var(--brand);font-size:12px;font-weight:800;
@@ -334,7 +334,7 @@ tr:active td{background:var(--card2)}
 .calc-conc-bar{background:var(--border-subtle);border-radius:10px;padding:10px 14px;
   font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:12px;
   min-height:40px;display:flex;align-items:center;justify-content:center}
-.calc-card{background:var(--brand);border-radius:var(--r);border:1px solid var(--surface-interactive);
+.calc-card{background:var(--surface-primary);border-radius:var(--r);border:1px solid var(--surface-interactive);
   padding:14px;margin-bottom:12px;touch-action:pan-y}
 .calc-section-lbl{font-size:10px;font-weight:700;color:var(--text-muted);
   text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
@@ -353,7 +353,7 @@ tr:active td{background:var(--card2)}
 .stack-section{margin-bottom:18px}
 .stack-section-hdr{font-size:11px;font-weight:700;color:var(--text-muted);
   text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-left:2px}
-.stack-row{background:var(--brand);border-radius:var(--r);border:1px solid var(--surface-interactive);
+.stack-row{background:var(--surface-primary);border-radius:var(--r);border:1px solid var(--surface-interactive);
   padding:12px 14px;margin-bottom:8px}
 .stack-row-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .stack-cell{background:var(--shadow);border-radius:8px;padding:8px 10px}
@@ -372,14 +372,14 @@ tr:active td{background:var(--card2)}
 .calc-ref-dose{color:var(--text-primary);font-weight:600}
 .calc-ref-vol{color:var(--text-secondary);font-family:var(--mono)}
 /* Syringe visualiser */
-.syringe-wrap{background:var(--brand);border-radius:var(--r);border:1px solid var(--surface-interactive);padding:16px;margin-bottom:12px}
+.syringe-wrap{background:var(--surface-primary);border-radius:var(--r);border:1px solid var(--surface-interactive);padding:16px;margin-bottom:12px}
 .syringe-wrap svg{pointer-events:none}
 .syringe-wrap svg *{pointer-events:none}
 .syringe-size-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .syringe-size-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid var(--border-primary);background:transparent;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s}
 .syringe-size-btn.on{background:var(--surface-primary);color:var(--brand);border-color:var(--text-primary)}
 /* Links */
-.link-card{display:flex;align-items:center;gap:14px;background:var(--brand);
+.link-card{display:flex;align-items:center;gap:14px;background:var(--surface-primary);
   border-radius:var(--r);border:1px solid var(--surface-interactive);
   padding:16px;margin-bottom:12px;cursor:pointer;transition:opacity .15s;touch-action:pan-y}
 .link-card:active{opacity:.8}
@@ -390,7 +390,7 @@ tr:active td{background:var(--card2)}
 .link-desc{font-size:12px;color:var(--text-secondary);line-height:1.4}
 .link-arrow{font-size:24px;color:var(--text-muted);flex-shrink:0}
 /* Inventory cards */
-.inv-card{background:var(--brand);border-radius:var(--r);border:1px solid var(--surface-interactive);
+.inv-card{background:var(--surface-primary);border-radius:var(--r);border:1px solid var(--surface-interactive);
   margin-bottom:12px;overflow:hidden;cursor:pointer;transition:opacity .15s}
 .inv-card:active{opacity:.85}
 .inv-card-hdr{display:flex;align-items:center;justify-content:space-between;
@@ -407,7 +407,7 @@ tr:active td{background:var(--card2)}
   background:var(--surface-raised);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
 .inv-inuse-pill.active{background:rgba(34,197,94,.2);color:var(--success)}
 .inv-inuse-pill.none{background:var(--border-subtle);color:var(--text-muted)}
-.inv-none{color:var(--border-primary)!important}
+.inv-none{color:var(--text-muted)!important}
 .inv-card.collapsed .inv-card-body{display:none}
 .inv-chevron{font-size:18px;color:var(--text-muted);transition:transform .2s;line-height:1}
 .inv-card.collapsed .inv-chevron{transform:rotate(-90deg)}
@@ -421,7 +421,7 @@ tr:active td{background:var(--card2)}
 .c-ok{color:var(--success)!important}
 /* Date navigator */
 .date-nav{display:flex;align-items:center;justify-content:space-between;
-  background:var(--brand);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;
+  background:var(--surface-secondary);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;
   border:1px solid var(--surface-interactive)}
 .date-nav-btn{background:var(--surface-raised);border:1px solid var(--surface-interactive);
   color:var(--text-primary);border-radius:8px;width:36px;height:36px;font-size:20px;cursor:pointer;
@@ -431,8 +431,8 @@ tr:active td{background:var(--card2)}
 .date-nav-center{text-align:center;flex:1}
 .date-nav-label{font-size:15px;font-weight:700;color:var(--text-primary)}
 .date-nav-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
-.past-banner{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
-  border-radius:10px;padding:8px 14px;font-size:13px;color:var(--warn);
+.past-banner{background:var(--warning-soft);border:1px solid var(--warning);
+  border-radius:10px;padding:8px 14px;font-size:13px;color:var(--warning-text);
   text-align:center;margin-bottom:12px}
 .inv-action-btns{display:flex;gap:6px}
 .inv-action-btn{background:var(--surface-raised);border:1px solid var(--surface-interactive);
@@ -519,7 +519,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.1 · build b0726.1749</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.1 · build b0726.1809</div>
       </div>
     </div>
   </div>
@@ -1742,7 +1742,7 @@ function rStack(){
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div style="width:8px;height:8px;border-radius:50%;background:${c.color||'#fff'};flex-shrink:0"></div>
         <div style="font-size:15px;font-weight:700;color:#fff">${esc(c.name)}</div>
-        <div style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px">${c.route||''}</div>
+        <div style="margin-left:auto;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">${c.route||''}</div>
       </div>
       <div class="stack-row-grid">
         <div class="stack-cell">
@@ -1862,7 +1862,7 @@ function rToday(){
     const snz = isSkipped(c, slot||'', viewDate);
     const snzTo = snz ? snoozeEndsOn(c, slot||'', viewDate) : '';
     return`<div class="ci ${ok?'done':''} ${expiring&&!snz?'expiring':''} ${snz?'snoozed':''}" onclick="quickCheck('${c.id}','${slot||''}')">
-      <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="#0033A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--c-white)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="dot" style="background:${c.color}"></div>
       <div style="flex:1;min-width:0">
         <div class="ci-name">${esc(c.name)}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}</div>
@@ -2239,7 +2239,7 @@ function rInv(){
         <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
           <div style="width:9px;height:9px;border-radius:50%;background:${c?c.color:'#fff'};flex-shrink:0"></div>
           <div style="font-size:15px;font-weight:700;flex:1">${c?esc(c.name):'Unknown'}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.55)">${totalVials} vial${totalVials!==1?'s':''} · ${c&&c.active?'Active':'Inactive'}</div>
+          <div style="font-size:11px;color:var(--text-secondary)">${totalVials} vial${totalVials!==1?'s':''} · ${c&&c.active?'Active':'Inactive'}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-left:8px" onclick="event.stopPropagation()">
           <button class="inv-action-btn" onclick="addSizeEntry('${pid}',event)" style="font-size:11px;padding:3px 8px">+ Size</button>
@@ -2248,7 +2248,7 @@ function rInv(){
       </div>
       <div class="inv-card-body" id="inv-body-${pid}">
       ${sizeRows}
-      <div class="inv-grid" style="margin:0;padding:12px 14px;border-top:1px solid rgba(255,255,255,.1)">
+      <div class="inv-grid" style="margin:0;padding:12px 14px;border-top:1px solid var(--border-subtle)">
         ${openedDate?`<div class="inv-f" style="grid-column:1/-1"><div class="inv-fl">Current Vial Opened</div><div class="inv-fv">${openedDate}</div></div>`:''}
         <div class="inv-f" style="grid-column:1/-1">
           <div class="inv-fl">Daily Usage</div>
@@ -2361,7 +2361,7 @@ function rHistByDate(){
   const monthLabel = months[cur] || cur;
 
   el.innerHTML = `
-    <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+    <div style="background:var(--surface-secondary);border-radius:10px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
       <div>
         <div style="font-size:13px;font-weight:700">${entries.length} active compound${entries.length!==1?'s':''}</div>
         <div style="font-size:11px;color:var(--text2)">Protocol during ${monthLabel}</div>
@@ -2691,7 +2691,7 @@ function checkNameHistory(){
             : p.durtype==='enddate'&&p.end ? 'until '+p.end : 'Ongoing';
   const row=(l,v)=>'<div><span style="color:var(--text2)">'+l+':</span> <strong>'+v+'</strong></div>';
   el.innerHTML=
-    '<div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);'+
+    '<div style="background:var(--surface-secondary);border:1px solid var(--border-primary);'+
     'border-radius:10px;padding:11px 12px;margin-top:8px">'+
       '<div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">Used before</div>'+
       '<div style="font-size:14px;font-weight:700;margin-bottom:2px">'+esc(h.name)+'</div>'+
@@ -3059,7 +3059,7 @@ function renderOilCompounds(){
           </div>
         </div>
       </div>
-      <div id="oil-result-${c.id}" style="font-size:12px;color:rgba(255,255,255,.6);margin-top:8px"></div>
+      <div id="oil-result-${c.id}" style="font-size:12px;color:var(--text-secondary);margin-top:8px"></div>
     </div>`).join('');
 }
 function setOilSyringe(ml,btn){
@@ -3162,9 +3162,9 @@ function showPushToProtocol(savedIdx){
   const d=getSavedDoses()[savedIdx]; if(!d) return;
   const w=document.createElement('div');
   w.id='push-to-proto-wrap'; w.className='calc-card';
-  w.style.cssText='background:#0044CC;border:1.5px solid rgba(255,255,255,.4)';
+  w.style.cssText='background:#0044CC;border:1.5px solid var(--border-primary)';
   w.innerHTML='<div class="calc-section-lbl">Push to Protocol</div>'+
-    '<p style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:10px">'+
+    '<p style="font-size:12px;color:var(--text-primary);margin-bottom:10px">'+
     'Save this dose calculation back to a compound\'s protocol settings.</p>'+
     '<select class="fs" id="push-proto-target" style="margin-bottom:10px">'+
     '<option value="">\u2014 Select compound \u2014</option>'+
@@ -3245,8 +3245,8 @@ function drawOilSyringe(compounds,totalMl){try{
     for(let u=0;u<=maxUnits+0.001;u+=uStep){
       const ty=barrelBot-Math.round((u/maxUnits)*barrelH);
       const maj=u%(uStep*2)===0;
-      ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="rgba(255,255,255,0.4)" stroke-width="${maj?1.5:1}"/>`;
-      if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${u}</text>`;
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="var(--text-muted)" stroke-width="${maj?1.5:1}"/>`;
+      if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-secondary)">${u}</text>`;
     }
   } else {
     const step=0.1;
@@ -3254,8 +3254,8 @@ function drawOilSyringe(compounds,totalMl){try{
       const mlR=Math.round(ml*10)/10;
       const ty=barrelBot-Math.round((mlR/maxMl)*barrelH);
       const maj=Math.abs(Math.round(mlR*10)%5)===0;
-      ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="rgba(255,255,255,0.4)" stroke-width="${maj?1.5:1}"/>`;
-      if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">${mlR.toFixed(1)}</text>`;
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="var(--text-muted)" stroke-width="${maj?1.5:1}"/>`;
+      if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-secondary)">${mlR.toFixed(1)}</text>`;
     }
   }
   if(totalMl>0)ticks+=`<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
@@ -3310,9 +3310,9 @@ function drawSyringe(units){
       const isMajor=tu%(step*2)===0;
       const tickW=isMajor?18:10;
       const lbl=isMajor?(syringeType==='im'?(tu*0.01).toFixed(1)+'ml':tu.toString()):'';
-      ticks+=`<line x1="198" y1="${ty}" x2="${198+tickW}" y2="${ty}" stroke="rgba(255,255,255,0.5)" stroke-width="${isMajor?1.5:1}"/>`;
-      if(lbl)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="rgba(255,255,255,0.55)" text-anchor="start">${lbl}</text>`;
-      ticks+=`<line x1="122" y1="${ty}" x2="${122-tickW/2}" y2="${ty}" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>`;
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+tickW}" y2="${ty}" stroke="var(--text-muted)" stroke-width="${isMajor?1.5:1}"/>`;
+      if(lbl)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-secondary)" text-anchor="start">${lbl}</text>`;
+      ticks+=`<line x1="122" y1="${ty}" x2="${122-tickW/2}" y2="${ty}" stroke="var(--border-primary)" stroke-width="1"/>`;
     }
     if(u>0)ticks+=`<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="rgba(78,205,196,0.8)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
     tickGroup.innerHTML=ticks;
@@ -3492,13 +3492,13 @@ function updateQuickRef(){try{
   const conc=getConc();
   const vialUnit=document.getElementById('c-vialUnit').value;
   const el=document.getElementById('calc-quick-ref');
-  if(!conc){el.innerHTML='<span style="color:rgba(255,255,255,.5)">Enter A and B to see the chart.</span>';return;}
+  if(!conc){el.innerHTML='<span style="color:var(--text-muted)">Enter A and B to see the chart.</span>';return;}
   const isIU = vialUnit==='IU';
   const concMcg = isIU ? null : toMcg(conc,vialUnit);
   // Common ml volumes for a U-100 syringe (every 5 units = 0.05ml)
   const marks=[5,10,15,20,25,30,40,50,60,70,80,100];
   el.innerHTML=
-    '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px"><span>Syringe mark</span><span style="text-align:right">Dose</span></div>'+
+    '<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px"><span>Syringe mark</span><span style="text-align:right">Dose</span></div>'+
     marks.map(u=>{
       const v=u*0.01;
       let dStr;
