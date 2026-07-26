@@ -469,7 +469,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:#0033A0" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:#5577CC;margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.0 · build b0726.1732</div>
+      <div style="font-size:9px;color:#0033A0;opacity:0.5;margin-top:2px">v2.0 · build b0726.1738</div>
       </div>
     </div>
   </div>
@@ -1392,19 +1392,45 @@ function migrateToCurrentSchema(data){
   candidate.inventory = candidate.inventory || [];
   candidate.history   = candidate.history   || [];
   candidate.skips     = candidate.skips     || [];
+  sanitizeIds(candidate);   // neutralise any unsafe imported IDs before they reach inline handlers
   return {candidate, flags};
 }
 
 // Validate a migrated candidate before it is allowed to persist.
+// Safe ID pattern — locally generated IDs are 'x'+alphanumerics. Imported IDs must
+// match this or they are regenerated (prevents quote-breaking payloads in inline onclick).
+const SAFE_ID=/^[A-Za-z0-9_-]{1,64}$/;
+function sanitizeIds(cand){
+  const fix=obj=>{ if(obj && typeof obj==='object' && !SAFE_ID.test(String(obj.id||''))) obj.id='x'+Math.random().toString(36).substr(2,9); };
+  (cand.compounds||[]).forEach(c=>{ fix(c); });
+  (cand.logs||[]).forEach(fix);
+  (cand.inventory||[]).forEach(fix);
+  (cand.history||[]).forEach(h=>{ fix(h); });
+  (cand.skips||[]).forEach(fix);
+  return cand;
+}
 function validateCandidate(cand){
   if(!cand || typeof cand!=='object') return 'not an object';
   if(cand.schema!==CURRENT_SCHEMA) return 'schema not stamped';
+  for(const key of ['compounds','logs','inventory','history','skips']){
+    if(cand[key]!==undefined && !Array.isArray(cand[key])) return key+' is not an array';
+  }
   if(!Array.isArray(cand.compounds)) return 'compounds not an array';
   for(const c of cand.compounds){
-    if(typeof c!=='object') return 'bad compound';
-
+    if(!c || typeof c!=='object') return 'bad compound entry';
+    if(c.id!==undefined && !SAFE_ID.test(String(c.id))) return 'unsafe compound id';
+    if(c.dose!==undefined && c.dose!=='' && !Number.isFinite(Number(c.dose))) return 'non-finite dose on '+(c.name||'?');
   }
-  if(!Array.isArray(cand.logs)) return 'logs not an array';
+  for(const l of (cand.logs||[])){
+    if(!l || typeof l!=='object') return 'bad log entry';
+    if(l.id!==undefined && !SAFE_ID.test(String(l.id))) return 'unsafe log id';
+  }
+  for(const it of (cand.inventory||[])){
+    if(!it || typeof it!=='object') return 'bad inventory entry';
+  }
+  for(const h of (cand.history||[])){
+    if(!h || typeof h!=='object') return 'bad history entry';
+  }
   return null; // ok
 }
 
@@ -2003,8 +2029,8 @@ function rLog(){
       const c=D.compounds.find(x=>x.id===l.pid);
       h+=`<div class="li">
         <div class="li-dot" style="background:${c?c.color:'var(--accent)'}"></div>
-        <div style="flex:1"><div class="li-name">${c?c.name:'Unknown'}</div>
-        <div class="li-meta">${l.dose} ${l.unit}${l.site?' · '+l.site:''}${l.notes?' · '+l.notes:''}</div></div>
+        <div style="flex:1"><div class="li-name">${c?esc(c.name):'Unknown'}</div>
+        <div class="li-meta">${esc(l.dose)} ${esc(l.unit)}${l.site?' · '+esc(l.site):''}${l.notes?' · '+esc(l.notes):''}</div></div>
         <div class="li-time">${fmtT(l.t)}</div>
       </div>`;
     });
@@ -2139,7 +2165,7 @@ function rInv(){
 
     // Build per-entry size rows
     const sizeRows=inv.map(v=>{
-      const lbl=v.label||`${v.qty} ${v.unit}`;
+      const lbl=v.label||`${v.qty} ${esc(v.unit)}`;
       const inUse=v.inUse||0;
       const inStore=v.vials-inUse;
       return`<div class="inv-size-row">
@@ -2147,7 +2173,7 @@ function rInv(){
         <div class="inv-size-cols">
           <div class="inv-size-stat"><div class="inv-fl">Storage</div><div class="inv-size-val">${inStore}</div></div>
           <div class="inv-size-stat"><div class="inv-fl">In Use</div><div class="inv-size-val ${inUse>0?'c-ok':'inv-none'}">${inUse||'—'}</div></div>
-          <div class="inv-size-stat"><div class="inv-fl">Purchased</div><div class="inv-size-val">${v.purchased||'—'}</div></div>
+          <div class="inv-size-stat"><div class="inv-fl">Purchased</div><div class="inv-size-val">${esc(v.purchased)||'—'}</div></div>
           ${v.bac?`<div class="inv-size-stat"><div class="inv-fl">BAC Water</div><div class="inv-size-val">${v.bac} ml</div></div>`:''}
         </div>
         <div class="inv-size-btns">
@@ -2162,7 +2188,7 @@ function rInv(){
       <div class="inv-card-hdr" onclick="toggleInvCard('inv-body-${pid}')" style="cursor:pointer">
         <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
           <div style="width:9px;height:9px;border-radius:50%;background:${c?c.color:'#fff'};flex-shrink:0"></div>
-          <div style="font-size:15px;font-weight:700;flex:1">${c?c.name:'Unknown'}</div>
+          <div style="font-size:15px;font-weight:700;flex:1">${c?esc(c.name):'Unknown'}</div>
           <div style="font-size:11px;color:rgba(255,255,255,.55)">${totalVials} vial${totalVials!==1?'s':''} · ${c&&c.active?'Active':'Inactive'}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-left:8px" onclick="event.stopPropagation()">
@@ -2176,7 +2202,7 @@ function rInv(){
         ${openedDate?`<div class="inv-f" style="grid-column:1/-1"><div class="inv-fl">Current Vial Opened</div><div class="inv-fv">${openedDate}</div></div>`:''}
         <div class="inv-f" style="grid-column:1/-1">
           <div class="inv-fl">Daily Usage</div>
-          <div class="inv-fv">${dosePerDay?dosePerDay.toFixed(1)+' '+(c?c.unit:'')+ '/day':'—'}</div>
+          <div class="inv-fv">${dosePerDay?dosePerDay.toFixed(1)+' '+(c?esc(c.unit):'')+ '/day':'—'}</div>
         </div>
         <div class="inv-f ${nextVial!==null&&nextVial<7?'inv-warn':''}">
           <div class="inv-fl">Next Vial Due</div>
@@ -2299,7 +2325,7 @@ function rHistByDate(){
           <div style="width:9px;height:9px;border-radius:50%;background:${s.color||'var(--accent)'}"></div>
           <div style="flex:1">
             <div style="font-size:13px;font-weight:700">${esc(h.name)}</div>
-            <div class="hist-date">${s.dose||'—'} ${s.unit||''} · ${FL2[s.freq]||s.freq||'—'} · ${s.time||'—'}</div>
+            <div class="hist-date">${esc(s.dose)||'—'} ${esc(s.unit)||''} · ${FL2[s.freq]||s.freq||'—'} · ${s.time||'—'}</div>
           </div>
         </div>
       </div>`;
@@ -2441,7 +2467,7 @@ function rHist(){
         ${i>0?`<button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="importCompoundHistory('${h.id}')">⬇ Import</button>`:'<span style="font-size:11px;color:var(--text2)">Current</span>'}
       </div>
       <div class="hist-body">
-        <div class="hist-field"><div class="hist-field-l">Dose</div><div class="hist-field-v">${s.dose||'—'} ${s.unit||''}</div></div>
+        <div class="hist-field"><div class="hist-field-l">Dose</div><div class="hist-field-v">${esc(s.dose)||'—'} ${esc(s.unit)||''}</div></div>
         <div class="hist-field"><div class="hist-field-l">Frequency</div><div class="hist-field-v">${FL2[s.freq]||s.freq||'—'}</div></div>
         <div class="hist-field"><div class="hist-field-l">Timing</div><div class="hist-field-v">${s.time||'—'}${s.clock?' · '+s.clock:''}</div></div>
         <div class="hist-field hist-days"><div class="hist-field-l">Days</div><div class="hist-field-v">${fmtDays(s.days)}</div></div>
@@ -3033,14 +3059,14 @@ function populateSavedDoseSelect(){try{
   const sel=document.getElementById('pep-saved-select');
   const saved=getSavedDoses();
   sel.innerHTML='<option value="">— Recall a saved dose —</option>'+
-    saved.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+    saved.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join('');
 }catch(e){console.error("function populateSavedDoseSele error:",e.message);}
 }
 function populateSavedStackSelect(){try{
   const sel=document.getElementById('oil-saved-select');
   const saved=getSavedStacks();
   sel.innerHTML='<option value="">— Recall a saved stack —</option>'+
-    saved.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+    saved.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join('');
 }catch(e){console.error("function populateSavedStackSel error:",e.message);}
 }
 
