@@ -573,7 +573,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1725</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1737</div>
       </div>
     </div>
   </div>
@@ -1061,7 +1061,8 @@ tr:active td{background:var(--card2)}
       </div>
     </div>
     <div class="fr fg">
-      <div><label class="fl">Time of Day</label>
+      <div>      <div id="f-freq-warn" style="display:none;background:var(--warning-soft);border:1px solid var(--warning);border-radius:10px;padding:9px 13px;margin:4px 0 14px;font-size:12px;color:var(--warning-text);line-height:1.4"></div>
+      <label class="fl">Time of Day</label>
         <select class="fs" id="f-time">
           <option value="AM">Morning (AM)</option>
           <option value="PM">Evening (PM)</option>
@@ -2560,10 +2561,11 @@ function rHist(){
         if(g && sig(g.snap)===sig(h.snap)){ g.from=h.savedAt; } // extend older bound
         else groups.push({snap:h.snap, id:h.id, from:h.savedAt, to:h.savedAt});
       });
+      const dOnly=iso=>(iso||'').slice(0,10);
       const fmtRange=(g,idx)=>{
-        const toD=idx===0?'now':fmtD(g.to);
-        const fromD=fmtD(g.from);
-        return fromD===fmtD(g.to)&&idx!==0 ? fromD : (fromD+' – '+toD);
+        const toD=idx===0?'now':fmtD(dOnly(g.to));
+        const fromD=fmtD(dOnly(g.from));
+        return fromD===fmtD(dOnly(g.to))&&idx!==0 ? fromD : (fromD+' – '+toD);
       };
       const summary=sn=>{
         const p=[sn.dose+' '+(sn.unit||'')];
@@ -2702,7 +2704,27 @@ function pickColor(c,el){
 }
 
 function onFreq(){
-  // Days always visible — no hiding needed
+  checkFreqDaysConflict();
+}
+function checkFreqDaysConflict(){
+  const el=document.getElementById('f-freq-warn'); if(!el) return;
+  const freq=document.getElementById('f-freq').value;
+  const nDays=getDays().length; // 0 = every day
+  // expected weekly day-count per frequency (null = no fixed expectation)
+  const expect={ '2xweek':2, '3xweek':3, '4xweek':4, '5xweek':5, weekly:1 };
+  const exp=expect[freq];
+  // daily/bid imply all 7; flag if days selected but fewer than 7
+  let msg='';
+  if((freq==='daily'||freq==='bid') && nDays>0 && nDays<7){
+    msg='Frequency is “'+(freq==='bid'?'Twice daily':'Daily')+'” but only '+nDays+' day'+(nDays>1?'s':'')+' selected. These may conflict.';
+  } else if(exp!==undefined && nDays>0 && nDays!==exp){
+    msg='Frequency is “'+freqLabel(freq)+'” but '+nDays+' day'+(nDays>1?'s':'')+' selected. These may conflict.';
+  }
+  el.textContent=msg;
+  el.style.display=msg?'block':'none';
+}
+function freqLabel(f){
+  return ({daily:'Daily',bid:'Twice daily',eod:'Every other day',e3d:'Every 3 days','2xweek':'2× per week','3xweek':'3× per week','4xweek':'4× per week','5xweek':'5× per week',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',prn:'As needed'})[f]||f;
 }
 function onDur(){
   const v=document.getElementById('f-durtype').value;
@@ -2736,13 +2758,16 @@ function setDays(days){
   document.querySelectorAll('#f-days .day-chk-box').forEach(el=>{
     el.classList.toggle('on',(days||[]).includes(parseInt(el.dataset.d)));
   });
+  if(typeof checkFreqDaysConflict==="function")checkFreqDaysConflict();
 }
 function togDayChk(item,d){
   const box=item.querySelector('.day-chk-box');
   box.classList.toggle('on');
+  checkFreqDaysConflict();
 }
 function selectAllDays(){
   document.querySelectorAll('#f-days .day-chk-box').forEach(el=>el.classList.add('on'));
+  if(typeof checkFreqDaysConflict==="function")checkFreqDaysConflict();
 }
 function clearAllDays(){
   document.querySelectorAll('#f-days .day-chk-box').forEach(el=>el.classList.remove('on'));
@@ -2752,6 +2777,7 @@ function selectWeekdays(){
     const d=parseInt(el.dataset.d);
     el.classList.toggle('on',d>=1&&d<=5);
   });
+  if(typeof checkFreqDaysConflict==="function")checkFreqDaysConflict();
 }
 
 function checkNameHistory(){
