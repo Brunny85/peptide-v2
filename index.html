@@ -524,6 +524,32 @@ tr:active td{background:var(--card2)}
 .proto-box-name{font-size:15px;font-weight:700;color:var(--text-primary)}
 .proto-box-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
 .proto-box-summary{font-size:11px;color:var(--text-muted);margin-top:1px}
+
+/* Adherence traffic-light calendar */
+.adh-legend{display:flex;gap:14px;margin:4px 0 10px;font-size:11px;color:var(--text-secondary)}
+.adh-legend span{display:flex;align-items:center;gap:5px}
+.adh-dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+.adh-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.adh-dow{font-size:9px;font-weight:650;color:var(--text-muted);text-align:center;padding:2px 0}
+.adh-cell{aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:var(--text-primary);background:var(--surface-secondary)}
+.adh-cell.empty{background:transparent}
+.adh-cell.blank{background:var(--surface-secondary);color:var(--text-muted);opacity:.5}
+.adh-cell.taken,.adh-dot.taken{background:var(--success)}
+.adh-cell.paused,.adh-dot.paused{background:var(--warning)}
+.adh-cell.missed,.adh-dot.missed{background:var(--danger)}
+.adh-cell.today-due{background:var(--brand)}
+.adh-cell.future{background:var(--surface-secondary);opacity:.4}
+.adh-cell.taken span,.adh-cell.paused span,.adh-cell.missed span,.adh-cell.today-due span{color:var(--c-white)}
+
+/* Calendar per-compound adherence colours */
+.cal-day.adh-taken{background:var(--success);color:var(--c-white);font-weight:700}
+.cal-day.adh-paused{background:var(--warning);color:var(--c-white);font-weight:700}
+.cal-day.adh-missed{background:var(--danger);color:var(--c-white);font-weight:700}
+.cal-day.adh-none{background:var(--surface-secondary);color:var(--text-muted);opacity:.55}
+.cal-adh-legend{display:flex;gap:14px;justify-content:center;margin:4px 0 12px;font-size:11px;color:var(--text-secondary)}
+.cal-adh-legend span{display:flex;align-items:center;gap:5px}
+.cal-adh-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 </style>
 </head>
 <body>
@@ -573,7 +599,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1737</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1813</div>
       </div>
     </div>
   </div>
@@ -897,6 +923,9 @@ tr:active td{background:var(--card2)}
 
         <!-- By Date view -->
         <div id="hist-date-view" style="display:none">
+          <select class="fs" id="cal-compound-filter" onchange="calSelectCompound()" style="margin-bottom:12px">
+            <option value="">All compounds (show full stack)</option>
+          </select>
           <div class="cal-nav">
             <button class="cal-nav-btn" onclick="calShift(-1)">‹</button>
             <div class="cal-title" id="cal-title">—</div>
@@ -1258,7 +1287,7 @@ tr:active td{background:var(--card2)}
 const APP_VERSION = '2.2';
 const CURRENT_SCHEMA = 2;
 const APP_KEYS = ['protocol_data','pt_backup','saved_doses','saved_stacks',
-  'pt_cycle_reminded','pt_last_backup_remind','pt_premigration_v1',
+  'pt_cycle_reminded','pt_missed_confirmed','pt_last_backup_remind','pt_premigration_v1',
   'pt_migration_temp','pt_preimport_backup'];
 
 function esc(v){
@@ -2394,9 +2423,33 @@ function setHistMode(mode){
   if(mode==='date') rHistByDate();
 }
 
+function calSelectCompound(){
+  window._calCompound=document.getElementById('cal-compound-filter').value;
+  rHistByDate();
+}
+// adherence status for one compound on one date: 'taken'|'paused'|'missed'|'none'
+function adherenceStatus(cid, ds){
+  const c=D.compounds.find(x=>x.id===cid);
+  // reconstruct config as of that date
+  let snap=null; (D.history||[]).forEach(h=>{ if(h.cid===cid && h.savedAt.slice(0,10)<=ds && (!snap||h.savedAt>snap.savedAt)) snap=h; });
+  const cfg=snap?snap.snap:c; if(!cfg) return 'none';
+  if(cfg.active===false || cfg.freq==='prn') return 'none';
+  if(cfg.start && ds<cfg.start) return 'none';
+  if(cfg.end && ds>cfg.end) return 'none';
+  const dow=new Date(ds+'T12:00:00').getDay();
+  const sched=(cfg.days&&cfg.days.length)?cfg.days.includes(dow):true;
+  if(!sched) return 'none';
+  if((D.logs||[]).some(l=>l.pid===cid && (l.t||'').startsWith(ds))) return 'taken';
+  const cRef={id:cid,time:cfg.time};
+  const slots=cfg.time==='Both'?['am','pm','']:[''];
+  if(slots.some(x=>!!snoozeFor(cRef,x,ds))) return 'paused';
+  const todayStr=new Date().toISOString().slice(0,10);
+  if(ds<todayStr) return 'missed';
+  return 'none';
+}
 function rHistByDate(){
-  // Calendar-based stack recall. Reconstructs the protocol as configured on a tapped
-  // date, using the latest snapshot on-or-before that date per compound.
+  // Calendar-based recall. "All compounds" reconstructs the stack per tapped date;
+  // a specific compound colours each day by adherence (taken/paused/missed).
   if(typeof _calYM==='undefined' || !_calYM){
     const now=new Date();
     window._calYM={y:now.getFullYear(), m:now.getMonth()}; // m: 0-11
@@ -2405,6 +2458,12 @@ function rHistByDate(){
   const title=document.getElementById('cal-title');
   const {y,m}=_calYM;
   title.textContent=new Date(y,m,1).toLocaleDateString([],{month:'long',year:'numeric'});
+  // populate compound filter (once per render, preserving selection)
+  const cf=document.getElementById('cal-compound-filter');
+  if(cf){ const curSel=window._calCompound||'';
+    cf.innerHTML='<option value="">All compounds (show full stack)</option>'+
+      D.compounds.map(c=>`<option value="${c.id}" ${c.id===curSel?'selected':''}>${esc(c.name)}</option>`).join('');
+  }
 
   // which day-keys (YYYY-MM-DD) have any snapshot on/before them within this month?
   const hist=(D.history||[]).slice();
@@ -2420,11 +2479,18 @@ function rHistByDate(){
   for(let d=1;d<=daysInMonth;d++){
     const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isFuture = ds>todayStr;
-    const hasData = firstSnap && ds>=firstSnap && !isFuture;
     const sel = (_calSelected===ds)?' selected':'';
-    const cls = isFuture?'future':(hasData?'has-data':'');
-    const click = (isFuture)?'':`onclick="calSelectDate('${ds}')"`;
-    html+=`<button class="cal-day ${cls}${sel}" ${click}>${d}</button>`;
+    let cls, click=(isFuture)?'':`onclick="calSelectDate('${ds}')"`;
+    if(window._calCompound){
+      // per-compound adherence colouring
+      const st=isFuture?'future':adherenceStatus(window._calCompound, ds);
+      cls=isFuture?'future':('adh-day adh-'+st);
+      html+=`<button class="cal-day ${cls}${sel}" ${click}>${d}</button>`;
+    } else {
+      const hasData = firstSnap && ds>=firstSnap && !isFuture;
+      cls = isFuture?'future':(hasData?'has-data':'');
+      html+=`<button class="cal-day ${cls}${sel}" ${click}>${d}</button>`;
+    }
   }
   grid.innerHTML=html;
 
@@ -2434,6 +2500,19 @@ function rHistByDate(){
   if(!_calSelected){ lbl.textContent=''; list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">Tap a highlighted date to see your protocol on that day.</div>'; return; }
 
   const selDate=_calSelected;
+  // Per-compound mode: show that compound's status for the day + a legend under the grid.
+  if(window._calCompound){
+    const c=D.compounds.find(x=>x.id===window._calCompound);
+    const st=adherenceStatus(window._calCompound, selDate);
+    const stLbl={taken:'Taken',paused:'Paused',missed:'Missed',none:'Not scheduled'}[st];
+    const stCol={taken:'var(--success-text)',paused:'var(--warning-text)',missed:'var(--danger-text)',none:'var(--text-muted)'}[st];
+    lbl.innerHTML=(c?esc(c.name):'')+' on '+new Date(selDate+'T12:00:00').toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
+    list.innerHTML='<div class="cal-adh-legend"><span><i style="background:var(--success)"></i>Taken</span><span><i style="background:var(--warning)"></i>Paused</span><span><i style="background:var(--danger)"></i>Missed</span></div>'+
+      '<div class="proto-box"><div class="proto-box-item"><div class="proto-box-dot" style="background:'+(c&&c.color||'var(--text-muted)')+'"></div>'+
+      '<div class="proto-box-info"><div class="proto-box-name">'+stLbl+'</div>'+
+      '<div class="proto-box-sub" style="color:'+stCol+'">'+(c?esc(c.dose+' '+(c.unit||'')+' · '+(c.route||'')):'')+'</div></div></div></div>';
+    return;
+  }
   lbl.textContent='Protocol on '+new Date(selDate+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 
   // reconstruct: for each compound (by cid), latest snapshot with savedAt date <= selDate
@@ -2487,6 +2566,63 @@ function calSelectDate(ds){
   window._calSelected=ds;
   rHistByDate();
 }
+
+function toggleAdherence(cid, fromStr, toStr){
+  const box=document.getElementById('adh-'+fromStr);
+  if(!box) return;
+  if(box.style.display!=='none'){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display='block';
+  const c=D.compounds.find(x=>x.id===cid);
+  // Use the period's snapshot config to know the schedule; fall back to current compound.
+  const snap=(()=>{ let best=null; (D.history||[]).forEach(h=>{ if(h.cid===cid && h.savedAt.slice(0,10)<=fromStr && (!best||h.savedAt>best.savedAt)) best=h; }); return best?best.snap:c; })();
+  if(!snap){ box.innerHTML='<div style="color:var(--text-muted);font-size:12px">No data.</div>'; return; }
+
+  const start=new Date(fromStr+'T12:00:00');
+  const end= toStr ? new Date(toStr+'T12:00:00') : new Date();
+  // cap at ~120 days to keep it phone-friendly
+  const MAXD=120;
+  const days=[];
+  let d=new Date(start), n=0;
+  while(d<=end && n<MAXD){ days.push(new Date(d)); d.setDate(d.getDate()+1); n++; }
+
+  // was a dose scheduled on date? (uses snap.days if set, else every day; skips prn)
+  const scheduledOn=(dt)=>{
+    if(snap.freq==='prn') return false;
+    if(snap.active===false) return false;
+    if(snap.days && snap.days.length){ return snap.days.includes(dt.getDay()); }
+    return true; // no specific days = every day
+  };
+  const dstr=dt=>dt.toISOString().slice(0,10);
+  const wasTaken=(ds)=> (D.logs||[]).some(l=>l.pid===cid && (l.t||'').startsWith(ds));
+  const cRef={id:cid, time:snap.time}; // stable ref for snoozeFor even if compound was deleted
+  const wasPaused=(ds)=>{ const sl2 = snap.time==='Both'?['am','pm','']:['']; return sl2.some(x=>!!snoozeFor(cRef, x, ds)); };
+
+  const todayStr=new Date().toISOString().slice(0,10);
+  let cells='';
+  const dow=['S','M','T','W','T','F','S'];
+  cells+=dow.map(x=>`<div class="adh-dow">${x}</div>`).join('');
+  // pad to weekday of first day
+  for(let i=0;i<days[0].getDay();i++) cells+='<div class="adh-cell empty"></div>';
+  days.forEach(dt=>{
+    const ds=dstr(dt);
+    let cls='blank', title=ds;
+    if(scheduledOn(dt)){
+      if(wasTaken(ds)){ cls='taken'; }
+      else if(wasPaused(ds)){ cls='paused'; }
+      else if(ds<todayStr){ cls='missed'; }   // past, due, not taken, not paused
+      else if(ds===todayStr){ cls='today-due'; }
+      else cls='future';
+    }
+    cells+=`<div class="adh-cell ${cls}" title="${ds}"><span>${dt.getDate()}</span></div>`;
+  });
+  box.innerHTML=`<div class="adh-legend">
+      <span><i class="adh-dot taken"></i>Taken</span>
+      <span><i class="adh-dot paused"></i>Paused</span>
+      <span><i class="adh-dot missed"></i>Missed</span>
+    </div>
+    <div class="adh-grid">${cells}</div>`;
+}
+
 function rHist(){
   // Populate compound filter
   const sel=document.getElementById('hist-filter');
@@ -2504,89 +2640,61 @@ function rHist(){
     return;
   }
 
-  const items=[...D.history]
-    .filter(h=>h.cid===cur)
-    .sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt));
+  const c = D.compounds.find(x=>x.id===cur);
+  const el2=document.getElementById('hist-list');
 
-  if(!items.length){
-    // No history yet - show current settings as "Current (no changes recorded)"
-    const c = D.compounds.find(c=>c.id===cur);
-    if(c){
-      const FL2={daily:'Daily',bid:'Twice Daily',eod:'Every Other Day',e3d:'Every 3 Days',
-        '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
-        weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
-      const DOW_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      const fmtDays=days=>(!days||!days.length)?'Every day':[...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
-      el.innerHTML=`<div class="hist-entry">
-        <div class="hist-hdr">
-          <div style="width:9px;height:9px;border-radius:50%;background:${c.color||'var(--accent)'}"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:700">Current Settings</div>
-            <div class="hist-date">No changes recorded yet — press Save & Update to start tracking</div>
-          </div>
-          <span style="font-size:11px;color:var(--text2)">Current</span>
-        </div>
-        <div class="hist-body">
-          <div class="hist-field"><div class="hist-field-l">Dose</div><div class="hist-field-v">${c.dose||'—'} ${c.unit||''}</div></div>
-          <div class="hist-field"><div class="hist-field-l">Frequency</div><div class="hist-field-v">${FL2[c.freq]||c.freq||'—'}</div></div>
-          <div class="hist-field"><div class="hist-field-l">Timing</div><div class="hist-field-v">${c.time||'—'}</div></div>
-          <div class="hist-field hist-days"><div class="hist-field-l">Days</div><div class="hist-field-v">${fmtDays(c.days)}</div></div>
-        </div>
-      </div>`;
-    } else {
-      el.innerHTML=`<div class="empty"><div class="empty-ic" style="color:var(--text-muted)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M8 3h10a2 2 0 012 2v14a2 2 0 01-2 2H8M8 3a2 2 0 00-2 2v0a2 2 0 01-2 2H3M8 3v14a2 2 0 01-2 2v0a2 2 0 01-2-2V7"/><path d="M11 8h6M11 12h6"/></svg></div><div class="empty-t">No history for this compound</div></div>`;
-    }
-    return;
-  }
+  // Build ordered snapshots (oldest first) for this compound.
+  const snaps=[...(D.history||[])].filter(h=>h.cid===cur)
+    .sort((a,b)=>new Date(a.savedAt)-new Date(b.savedAt));
 
-  const DOW_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const fmtDays=days=>(!days||!days.length)?'Every day':[...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
-  const fmtDT=iso=>{
-    const d=new Date(iso);
-    return d.toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})+
-      ' · '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  if(!snaps.length && !c){ el2.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">No history for this compound.</div>'; return; }
+
+  // Group consecutive snapshots into PROTOCOL PERIODS by config change.
+  // Protocol identity = dose/unit/route/freq/time/days/clock + active state.
+  // Deliberately EXCLUDES cycle dates (start/end/durtype/weeks): a cycle-date drift
+  // or recompute shouldn't split one protocol into multiple periods.
+  const sig=sn=>['dose','unit','route','freq','time','days','clock','active']
+    .map(k=>Array.isArray(sn[k])?[...sn[k]].sort().join(','):(sn[k]==null?'':sn[k])).join('|');
+  const periods=[];
+  snaps.forEach(h=>{
+    const last=periods[periods.length-1];
+    if(last && sig(last.snap)===sig(h.snap)){ /* same config: extend, keep earliest start */ }
+    else periods.push({snap:h.snap, from:h.savedAt.slice(0,10), fromTs:h.savedAt});
+  });
+  // set each period's 'to' = day before next period's 'from'; last = now
+  periods.forEach((p,idx)=>{
+    if(idx<periods.length-1){
+      const nextFrom=new Date(periods[idx+1].from+'T12:00:00');
+      nextFrom.setDate(nextFrom.getDate()-1);
+      p.to=nextFrom.toISOString().slice(0,10);
+    } else p.to=null; // ongoing
+  });
+  // newest first for display
+  periods.reverse();
+
+  const FL={daily:'Daily',bid:'2×/day',eod:'Every other day',e3d:'Every 3 days','2xweek':'2×/week','3xweek':'3×/week','4xweek':'4×/week','5xweek':'5×/week',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',prn:'As needed'};
+  const summ=sn=>{const p=[sn.dose+' '+(sn.unit||'')]; if(sn.freq)p.push(FL[sn.freq]||sn.freq); if(sn.time)p.push(sn.time==='Both'?'AM+PM':sn.time); return p.join(' · ');};
+  const rangeLbl=(p,idx)=>{
+    const f=fmtD(p.from);
+    if(idx===0 && !p.to) return f+' – now';
+    if(!p.to) return f+' – now';
+    return p.from===p.to ? f : (f+' – '+fmtD(p.to));
   };
-  const FL2={daily:'Daily',bid:'Twice Daily',eod:'Every Other Day',e3d:'Every 3 Days',
-    '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
-    weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
 
-  el.innerHTML=(function(){
-      // Collapse consecutive identical protocols; label by effective date range + summary.
-      const FL={daily:'Daily',bid:'2×/day',eod:'Every other day',e3d:'Every 3 days','2xweek':'2×/week','3xweek':'3×/week','4xweek':'4×/week','5xweek':'5×/week',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',prn:'As needed'};
-      const sig=sn=>[sn.dose,sn.unit,sn.freq,sn.time,(sn.days||[]).join(','),sn.route].join('|');
-      // items are newest-first; collapse runs of identical signature
-      const groups=[];
-      items.forEach(h=>{
-        const g=groups[groups.length-1];
-        if(g && sig(g.snap)===sig(h.snap)){ g.from=h.savedAt; } // extend older bound
-        else groups.push({snap:h.snap, id:h.id, from:h.savedAt, to:h.savedAt});
-      });
-      const dOnly=iso=>(iso||'').slice(0,10);
-      const fmtRange=(g,idx)=>{
-        const toD=idx===0?'now':fmtD(dOnly(g.to));
-        const fromD=fmtD(dOnly(g.from));
-        return fromD===fmtD(dOnly(g.to))&&idx!==0 ? fromD : (fromD+' – '+toD);
-      };
-      const summary=sn=>{
-        const p=[sn.dose+' '+(sn.unit||'')];
-        if(sn.freq) p.push(FL[sn.freq]||sn.freq);
-        if(sn.time) p.push(sn.time==='Both'?'AM+PM':sn.time);
-        if(sn.days&&sn.days.length&&sn.days.length<7) p.push(sn.days.length+'d/wk');
-        return p.join(' · ');
-      };
-      return groups.map((g,idx)=>`<div class="hist-entry">
-        <div class="hist-hdr">
-          <div style="width:9px;height:9px;border-radius:50%;background:${g.snap.color||'var(--brand)'}"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:700;color:var(--text-primary)">${idx===0?'Current protocol':'Previous'}</div>
-            <div class="hist-date">${fmtRange(g,idx)}</div>
-          </div>
-          ${idx>0?`<button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="importCompoundHistory('${g.id}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg> Restore</button>`:''}
-        </div>
-        <div style="padding:11px 14px;font-size:14px;color:var(--text-primary);font-weight:600">${esc(summary(g.snap))}</div>
-        <div style="padding:0 14px 11px;font-size:12px;color:var(--text-secondary)">${esc(g.snap.route||'')}${g.snap.start?' · started '+fmtD(g.snap.start):''}</div>
-      </div>`).join('');
-    })();
+  el2.innerHTML=periods.map((p,idx)=>`<div class="hist-entry">
+    <div class="hist-hdr">
+      <div style="width:9px;height:9px;border-radius:50%;background:${p.snap.color||'var(--brand)'}"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary)">${idx===0?'Current protocol':'Previous'}</div>
+        <div class="hist-date">${rangeLbl(p,idx)}</div>
+      </div>
+      <button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="toggleAdherence('${cur}','${p.from}','${p.to||''}')">Calendar</button>
+    </div>
+    <div style="padding:11px 14px;font-size:14px;color:var(--text-primary);font-weight:600">${esc(summ(p.snap))}</div>
+    <div style="padding:0 14px 11px;font-size:12px;color:var(--text-secondary)">${esc(p.snap.route||'')}</div>
+    <div class="adherence-cal" id="adh-${p.from}" style="display:none;padding:0 14px 14px"></div>
+  </div>`).join('');
+
 }
 
   async function importCompoundHistory(histId){
@@ -3827,9 +3935,28 @@ function applyHistoryRetention(history){
   return kept.sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
 }
 
-async function manualSave(){
+async function latestSnapFor(cid){
+  let best=null;
+  (D.history||[]).forEach(h=>{ if(h.cid===cid && (!best || h.savedAt>best.savedAt)) best=h; });
+  return best;
+}
+function sameProtocolConfig(a,b){
+  if(!a||!b) return false;
+  // Protocol-defining fields only. Cycle dates (start/end/durtype/weeks) are intentionally
+  // NOT compared here — a date recompute shouldn't count as a protocol change for snapshot
+  // purposes — but name/vial/notes ARE, since editing those is a deliberate change worth recording.
+  const keys=['name','dose','unit','route','freq','time','days','clock','vialSize','vialUnit','bacWater','active','color','doseNotes','timingNotes'];
+  const norm=v=>Array.isArray(v)?[...v].sort().join(','):(v===undefined||v===null?'':String(v));
+  return keys.every(k=>norm(a[k])===norm(b[k]));
+}
+function manualSave(){
   // Snapshot ALL compounds via the canonical deep-snapshot path (applies retention).
-  D.compounds.forEach(c=> snapshotCompound(c, 'save-update'));
+  // Dirty check: only snapshot compounds whose protocol config actually changed
+  // since their last snapshot. Prevents history bloat from redundant saves.
+  D.compounds.forEach(c=>{
+    const last=latestSnapFor(c.id);
+    if(!last || !sameProtocolConfig(c, last.snap)) snapshotCompound(c, 'save-update');
+  });
   const okPrimary=save();
   const bk=safeWriteJson('pt_backup', D);
   render();
@@ -3934,6 +4061,83 @@ function init(){
   }catch(e){}
   // Check for cycle end reminders
   setTimeout(checkCycleEndReminders, 800);
+  setTimeout(checkMissedDoses, 1200);
+}
+
+
+// ─── MISSED DOSE CONFIRMATION ──────────────────────────
+// On opening, look back over recent days for doses that were DUE but not logged and
+// not paused. Ask the user to confirm they were actually missed vs just not entered.
+function checkMissedDoses(){
+  const LOOKBACK=1; // only the previous day
+  const todayStr=new Date().toISOString().slice(0,10);
+  const confirmed=JSON.parse(localStorage.getItem('pt_missed_confirmed')||'{}');
+  const candidates=[];
+  for(let back=1; back<=LOOKBACK; back++){
+    const dt=new Date(); dt.setDate(dt.getDate()-back);
+    const ds=dt.toISOString().slice(0,10);
+    (D.compounds||[]).forEach(c=>{
+      if(!c.active || c.freq==='prn') return;
+      // scheduled that day?
+      const dow=dt.getDay();
+      const sched = (c.days&&c.days.length) ? c.days.includes(dow) : true;
+      if(!sched) return;
+      // within active window?
+      if(c.start && ds<c.start) return;
+      if(c.end && ds>c.end) return;
+      const key=c.id+'|'+ds;
+      if(confirmed[key]) return; // already confirmed one way or another
+      const taken=(D.logs||[]).some(l=>l.pid===c.id && (l.t||'').startsWith(ds));
+      // Use the app's own snooze check so "paused" is judged identically to the rest of the app.
+      // For Both (AM+PM) compounds a pause on either slot (or a whole-day pause) counts.
+      const slots = c.time==='Both' ? ['am','pm',''] : [''];
+      const paused = slots.some(sl => !!snoozeFor(c, sl, ds));
+      if(!taken && !paused) candidates.push({cid:c.id, name:c.name, date:ds, key});
+    });
+  }
+  if(!candidates.length) return;
+  showMissedDoseDialog(candidates, confirmed);
+}
+function showMissedDoseDialog(candidates, confirmed){
+  const list=candidates.slice(0,8); // cap display
+  const rows=list.map((m,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle)">
+      <div><div style="font-weight:600;color:var(--text-primary)">${esc(m.name)}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">${new Date(m.date+'T12:00:00').toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})}</div></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-s btn-sm" style="font-size:11px;padding:6px 9px" onclick="resolveMissed(${i},'logged')">I took it</button>
+        <button class="btn btn-s btn-sm" style="font-size:11px;padding:6px 9px;color:var(--danger-text)" onclick="resolveMissed(${i},'missed')">Missed</button>
+      </div>
+    </div>`).join('');
+  window._missedCandidates=list;
+  const ov=document.createElement('div');
+  ov.id='missed-overlay';
+  ov.style.cssText='position:fixed;inset:0;background:var(--overlay);z-index:999;display:flex;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom,0px)';
+  ov.innerHTML=`<div style="background:var(--surface-primary);border-radius:20px 20px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-height:80vh;overflow-y:auto">
+      <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:4px">Confirm recent doses</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">These doses were scheduled but not logged. Did you take them?</div>
+      ${rows}
+      <button class="btn btn-p" style="margin-top:14px" onclick="dismissMissed()">Done</button>
+    </div>`;
+  document.body.appendChild(ov);
+}
+function resolveMissed(idx, outcome){
+  const m=window._missedCandidates[idx]; if(!m) return;
+  const confirmed=JSON.parse(localStorage.getItem('pt_missed_confirmed')||'{}');
+  confirmed[m.key]=outcome; // 'logged' or 'missed'
+  localStorage.setItem('pt_missed_confirmed', JSON.stringify(confirmed));
+  if(outcome==='logged'){
+    // record a retroactive log at noon of that date so adherence shows green
+    if(!D.logs) D.logs=[];
+    D.logs.push({id:uid(), pid:m.cid, dose:'', unit:'', site:'', t:m.date+'T12:00:00', notes:'Confirmed via missed-dose check'});
+    save();
+  }
+  // grey out the row
+  const btns=document.querySelectorAll('#missed-overlay [onclick^="resolveMissed('+idx+',"]');
+  btns.forEach(b=>{b.disabled=true; b.style.opacity=.4;});
+}
+function dismissMissed(){
+  const o=document.getElementById('missed-overlay'); if(o) o.remove();
+  render();
 }
 
 // ─── CYCLE END REMINDER ──────────────────────────────────────────────────────
