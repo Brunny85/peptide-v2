@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#15191E">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Protocol">
-<title>Protocol Tracker</title>
+<meta name="apple-mobile-web-app-title" content="Peptide Tracker">
+<title>Peptide Tracker</title>
 <style>
 :root{
   /* ── CHARCOAL palette literals ── */
@@ -101,11 +101,10 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .fab{position:fixed;bottom:calc(var(--tabh) + var(--sb) + 20px);right:16px;
   width:56px;height:56px;border-radius:50%;background:var(--brand);
   border:none;color:var(--c-white);cursor:pointer;display:flex;align-items:center;
-  justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,.25);z-index:99}
+  justify-content:center;box-shadow:0 4px 24px var(--shadow);z-index:99}
 .fab:active{transform:scale(.93)}
 .pulse{position:absolute;width:100%;height:100%;border-radius:50%;
-  border:2px solid var(--text-secondary);animation:pulse 2s ease-out infinite}
-@keyframes pulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.7);opacity:0}}
+  border:2px solid var(--text-secondary);opacity:.8}100%{transform:scale(1.7);opacity:0}}
 
 /* Cards / rows */
 .card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
@@ -149,7 +148,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .tickall-lbl{font-size:14px;font-weight:700}
 
 /* Overlay / Sheet */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;
+.ov{position:fixed;inset:0;background:var(--overlay);z-index:200;
   display:flex;align-items:flex-end;backdrop-filter:blur(4px);
   transition:opacity .15s;opacity:1}
 .ov.hidden{display:none!important}
@@ -188,7 +187,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .day{background:var(--card);border:1.5px solid var(--border);border-radius:8px;
   padding:8px 2px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;
   color:var(--text2);transition:all .15s;user-select:none}
-.day.on{background:rgba(78,205,196,.15);border-color:var(--accent);color:var(--accent)}
+.day.on{background:var(--brand-soft);border-color:var(--accent);color:var(--accent)}
 
 /* Toggle */
 .tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
@@ -210,7 +209,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 .btn:active{opacity:.8}
 .btn-p{background:var(--btn-primary-bg);color:var(--btn-primary-text);border:none;font-weight:700}
 .btn-s{background:var(--surface-raised);color:var(--text-primary);border:1px solid var(--border-primary)}
-.btn-d{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid var(--danger-soft)}
+.btn-d{background:var(--danger-soft);color:var(--danger);border:1px solid var(--danger-soft)}
 .btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
 .brow{display:flex;gap:10px;margin-top:18px}
 .brow .btn{flex:1}
@@ -306,7 +305,7 @@ tr:active td{background:var(--card2)}
 .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .site{background:var(--card);border:1px solid var(--border);border-radius:10px;
   padding:9px 6px;text-align:center;cursor:pointer;font-size:12px;color:var(--text2)}
-.site.on{border-color:var(--accent);color:var(--accent);background:rgba(78,205,196,.1)}
+.site.on{border-color:var(--accent);color:var(--accent);background:var(--brand-soft)}
 .site-ic{font-size:18px;display:block;margin-bottom:3px}
 
 /* Streak */
@@ -400,12 +399,12 @@ tr:active td{background:var(--card2)}
 .inv-fl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
 .inv-fv{font-size:15px;font-weight:700;color:var(--text-primary)}
 .inv-warn .inv-fv{color:var(--warn)}
-.inv-warn .inv-fl{color:rgba(245,158,11,.7)}
+.inv-warn .inv-fl{color:var(--warning)}
 .inv-inuse-bar{display:flex;align-items:center;justify-content:space-between;
   padding:10px 14px;background:var(--border-subtle);border-top:1px solid var(--surface-interactive)}
 .inv-inuse-pill{display:inline-flex;align-items:center;gap:5px;
   background:var(--surface-raised);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
-.inv-inuse-pill.active{background:rgba(34,197,94,.2);color:var(--success)}
+.inv-inuse-pill.active{background:var(--success-soft);color:var(--success)}
 .inv-inuse-pill.none{background:var(--border-subtle);color:var(--text-muted)}
 .inv-none{color:var(--text-muted)!important}
 .inv-card.collapsed .inv-card-body{display:none}
@@ -438,8 +437,8 @@ tr:active td{background:var(--card2)}
 .inv-action-btn{background:var(--surface-raised);border:1px solid var(--surface-interactive);
   color:var(--text-primary);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
 .inv-action-btn:active{background:var(--border-primary)}
-.inv-action-btn.open{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:var(--success)}
-.inv-action-btn.finish{background:rgba(239,68,68,.15);border-color:var(--danger-soft);color:var(--danger)}
+.inv-action-btn.open{background:var(--success-soft);border-color:var(--success);color:var(--success)}
+.inv-action-btn.finish{background:var(--danger-soft);border-color:var(--danger-soft);color:var(--danger)}
 /* History */
 .hist-entry{background:var(--border-subtle);border-radius:10px;border:1px solid var(--surface-interactive);
   margin-bottom:10px;overflow:hidden}
@@ -455,7 +454,7 @@ tr:active td{background:var(--card2)}
 /* Pin badge */
 .pin-badge{font-family:var(--mono);font-weight:700;color:var(--text-primary);white-space:nowrap;cursor:pointer}
 /* Expiring cycle (within 7 days of end) */
-.ci.expiring{background:rgba(200,32,32,.92)}
+.ci.expiring{background:var(--danger)}
 .ci.expiring .ci-sub{color:var(--text-primary)}
 .snooze-btn{width:26px;height:26px;border-radius:50%;flex-shrink:0;padding:0;cursor:pointer;
   border:1.5px solid var(--border-primary);background:transparent;color:var(--text-primary);opacity:.5;
@@ -464,13 +463,16 @@ tr:active td{background:var(--card2)}
 .ci.snoozed{opacity:.55}
 .ci.snoozed .chk{opacity:.35}
 .snz-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
-  background:rgba(245,158,11,.28);color:var(--warn);white-space:nowrap;margin-left:6px}
+  background:var(--warning);color:var(--warn);white-space:nowrap;margin-left:6px}
 .exp-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;
   background:var(--border-primary);color:var(--text-primary);white-space:nowrap;margin-left:6px}
-.expiry-legend-inner{display:flex;align-items:center;gap:8px;background:rgba(239,68,68,.15);
-  border:1px solid rgba(239,68,68,.35);border-radius:10px;padding:8px 12px;
+.expiry-legend-inner{display:flex;align-items:center;gap:8px;background:var(--danger-soft);
+  border:1px solid var(--danger);border-radius:10px;padding:8px 12px;
   margin-bottom:12px;font-size:12px;color:var(--danger-text)}
-</style>
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+}</style>
 </head>
 <body>
 <div id="app">
@@ -519,7 +521,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.1 · build b0726.1855</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.1 · build b0726.1905</div>
       </div>
     </div>
   </div>
@@ -533,10 +535,10 @@ tr:active td{background:var(--card2)}
   <!-- Mode toggle -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
     <button class="calc-mode-btn active" id="cmode-peptide" onclick="setCalcMode('peptide')">
-      💉 Peptide<br><span style="font-size:11px;font-weight:400;opacity:.8">BAC water reconstituted</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> Peptide<br><span style="font-size:11px;font-weight:400;opacity:.8">BAC water reconstituted</span>
     </button>
     <button class="calc-mode-btn" id="cmode-oil" onclick="setCalcMode('oil')">
-      🧴 Oil-Based / IM<br><span style="font-size:11px;font-weight:400;opacity:.8">Pre-mixed, stackable</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 3s6 6.5 6 10.5a6 6 0 01-12 0C6 9.5 12 3 12 3z"/></svg> Oil-Based / IM<br><span style="font-size:11px;font-weight:400;opacity:.8">Pre-mixed, stackable</span>
     </button>
   </div>
 
@@ -614,7 +616,7 @@ tr:active td{background:var(--card2)}
         <rect id="syr-plunger-rod" x="152" y="38" width="16" height="10" rx="2" fill="var(--text-muted)"/>
         <rect x="122" y="48" width="76" height="380" rx="8" fill="var(--border-subtle)" stroke="var(--text-muted)" stroke-width="2"/>
         <clipPath id="barrel-clip"><rect x="124" y="50" width="72" height="376" rx="6"/></clipPath>
-        <rect id="syr-fluid" x="124" y="426" width="72" height="0" fill="rgba(78,205,196,0.7)" clip-path="url(#barrel-clip)"/>
+        <rect id="syr-fluid" x="124" y="426" width="72" height="0" fill="var(--brand)" clip-path="url(#barrel-clip)"/>
         <rect id="syr-disc" x="124" y="416" width="72" height="12" rx="3" fill="var(--text-primary)"/>
         <g id="syr-ticks"></g>
         <rect x="138" y="428" width="44" height="18" rx="4" fill="var(--text-secondary)"/>
@@ -635,7 +637,7 @@ tr:active td{background:var(--card2)}
       <select class="fs" id="pep-saved-select" onchange="loadSavedDose()" style="margin-bottom:10px">
         <option value="">— Load a saved dose —</option>
       </select>
-      <button class="btn btn-s btn-sm" onclick="saveDose()" style="width:100%">💾 Save This Dose</button>
+      <button class="btn btn-s btn-sm" onclick="saveDose()" style="width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Save This Dose</button>
     </div>
   </div>
 
@@ -658,13 +660,13 @@ tr:active td{background:var(--card2)}
 
     <div class="syringe-wrap" id="oil-syringe-card" style="display:none">
       <div class="calc-section-lbl">Syringe Visual (IM)</div>
-      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px">💉 Insulin</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> Insulin</div>
       <div class="syringe-size-row">
         <button class="syringe-size-btn" onclick="setOilSyrSize(0.3,'insulin',this)">0.3 ml</button>
         <button class="syringe-size-btn" onclick="setOilSyrSize(0.5,'insulin',this)">0.5 ml</button>
         <button class="syringe-size-btn" onclick="setOilSyrSize(1.0,'insulin',this)">1.0 ml</button>
       </div>
-      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px">🩸 IM Needle</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 3s6 6.5 6 10.5a6 6 0 01-12 0C6 9.5 12 3 12 3z"/><path d="M9 14a3 3 0 003 3"/></svg> IM Needle</div>
       <div class="syringe-size-row">
         <button class="syringe-size-btn on" onclick="setOilSyrSize(1,'im',this)">1 ml</button>
         <button class="syringe-size-btn" onclick="setOilSyrSize(2,'im',this)">2 ml</button>
@@ -691,7 +693,7 @@ tr:active td{background:var(--card2)}
       <select class="fs" id="oil-saved-select" onchange="loadSavedStack()" style="margin-bottom:10px">
         <option value="">— Load a saved stack —</option>
       </select>
-      <button class="btn btn-s btn-sm" onclick="saveStack()" style="width:100%">💾 Save Current Stack</button>
+      <button class="btn btn-s btn-sm" onclick="saveStack()" style="width:100%"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Save Current Stack</button>
     </div>
   </div>
 
@@ -710,7 +712,7 @@ tr:active td{background:var(--card2)}
         <button class="date-nav-btn" onclick="changeDay(1)" id="nav-next-btn" title="Next day">›</button>
       </div>
       <div id="expiry-legend"></div>
-      <div class="past-banner hidden" id="past-banner">📅 Viewing a past day — tap to mark doses taken</div>
+      <div class="past-banner hidden" id="past-banner"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg> Viewing a past day — tap to mark doses taken</div>
       <div class="stats">
         <div class="stat"><div class="stat-n c-ok" id="s-done">0</div><div class="stat-l">Done</div></div>
         <div class="stat"><div class="stat-n c-warn" id="s-due">0</div><div class="stat-l">Remaining</div></div>
@@ -728,7 +730,7 @@ tr:active td{background:var(--card2)}
       <button class="btn btn-p" onclick="manualSave()" id="save-btn" style="margin-top:10px">
         Save &amp; Update
       </button>
-      <div id="save-confirm" style="text-align:center;font-size:12px;color:var(--success);margin-top:6px;display:none">✓ Saved successfully</div>
+      <div id="save-confirm" style="text-align:center;font-size:12px;color:var(--success);margin-top:6px;display:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M20 6L9 17l-5-5"/></svg> Saved successfully</div>
 
       <!-- Data backup -->
       <div style="display:flex;gap:8px;margin-top:10px">
@@ -774,13 +776,13 @@ tr:active td{background:var(--card2)}
       </div>
       <button class="btn btn-p" onclick="openAdd()" style="margin-top:14px;font-size:15px">+ Add New Compound</button>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-subtle)">
-        <button class="btn btn-d" onclick="masterReset()" style="font-size:14px">⚠️ Master Reset — Clear All Data</button>
+        <button class="btn btn-d" onclick="masterReset()" style="font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> Master Reset — Clear All Data</button>
       </div>
     
       <!-- Useful Links -->
       <div class="sec">Useful Links</div>
       <div class="link-card" onclick="openLink('https://peptidedosages.com/single-peptide-dosages/selank-10-mg-vial-dosage-protocol/')">
-        <div class="link-icon">💊</div>
+        <div class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M12 8v8"/></svg></div>
         <div class="link-body">
           <div class="link-title">Peptide Dosage Protocols</div>
           <div class="link-url">peptidedosages.com</div>
@@ -789,7 +791,7 @@ tr:active td{background:var(--card2)}
         <div class="link-arrow">›</div>
       </div>
       <div class="link-card" onclick="openLink('https://particlepeptides.com/pages/peptide-calculator')">
-        <div class="link-icon">🧮</div>
+        <div class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h4"/></svg></div>
         <div class="link-body">
           <div class="link-title">Peptide Calculator</div>
           <div class="link-url">particlepeptides.com</div>
@@ -810,9 +812,9 @@ tr:active td{background:var(--card2)}
     <div id="pg-records" class="pg hidden">
       <!-- Sub-tab selector -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">
-        <button class="rec-tab on" id="rectab-stats" onclick="setRecTab('stats')">📊 Stats</button>
-        <button class="rec-tab" id="rectab-hist" onclick="setRecTab('hist')">🕐 History</button>
-        <button class="rec-tab" id="rectab-log" onclick="setRecTab('log')">📋 Log</button>
+        <button class="rec-tab on" id="rectab-stats" onclick="setRecTab('stats')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg> Stats</button>
+        <button class="rec-tab" id="rectab-hist" onclick="setRecTab('hist')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> History</button>
+        <button class="rec-tab" id="rectab-log" onclick="setRecTab('log')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg> Log</button>
       </div>
 
       <!-- Stats sub-page -->
@@ -827,8 +829,8 @@ tr:active td{background:var(--card2)}
       <div id="rec-hist" class="hidden">
         <!-- View mode toggle -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-          <button class="rec-tab on" id="histmode-compound" onclick="setHistMode('compound')">💊 By Compound</button>
-          <button class="rec-tab" id="histmode-date" onclick="setHistMode('date')">📅 By Date</button>
+          <button class="rec-tab on" id="histmode-compound" onclick="setHistMode('compound')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M12 8v8"/></svg> By Compound</button>
+          <button class="rec-tab" id="histmode-date" onclick="setHistMode('date')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg> By Date</button>
         </div>
 
         <!-- By Compound view -->
@@ -867,7 +869,7 @@ tr:active td{background:var(--card2)}
       <div style="background:var(--brand);border:1px solid var(--border-subtle);border-radius:var(--r);padding:14px;margin-top:4px">
         <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;line-height:1.5">Copy your stack as an AI-ready prompt and paste into ChatGPT, Claude, Gemini or any AI assistant for a detailed analysis.</div>
         <button class="btn btn-p" onclick="copyStackPrompt()" id="copy-stack-btn" style="font-size:14px">Copy Stack for AI Analysis</button>
-        <div id="copy-stack-confirm" style="font-size:12px;color:var(--success);margin-top:8px;display:none;text-align:center">✓ Prompt copied — paste into your AI of choice</div>
+        <div id="copy-stack-confirm" style="font-size:12px;color:var(--success);margin-top:8px;display:none;text-align:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M20 6L9 17l-5-5"/></svg> Prompt copied — paste into your AI of choice</div>
       </div>
     </div>
 
@@ -1092,7 +1094,7 @@ tr:active td{background:var(--card2)}
     <p style="font-size:13px;color:var(--text2);margin:-10px 0 16px;line-height:1.5">
       Pauses this dose without changing your protocol. It stays listed on Today and comes back automatically.
     </p>
-    <div id="snz-current" class="hidden" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);
+    <div id="snz-current" class="hidden" style="background:var(--warning-soft);border:1px solid var(--warning);
       border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:var(--warn)"></div>
     <div class="fg">
       <label class="fl">Snooze for</label>
@@ -1135,18 +1137,18 @@ tr:active td{background:var(--card2)}
     </div>
     <div class="fg"><label class="fl">Administration Site</label>
       <div class="sg" id="l-sites">
-        <div class="site" onclick="selSite(this,'Abdomen L')"><span class="site-ic">🟤</span>Abd L</div>
-        <div class="site" onclick="selSite(this,'Abdomen R')"><span class="site-ic">🟤</span>Abd R</div>
-        <div class="site" onclick="selSite(this,'Thigh L')"><span class="site-ic">🦵</span>Thigh L</div>
-        <div class="site" onclick="selSite(this,'Thigh R')"><span class="site-ic">🦵</span>Thigh R</div>
-        <div class="site" onclick="selSite(this,'Glute L')"><span class="site-ic">💉</span>Glute L</div>
-        <div class="site" onclick="selSite(this,'Glute R')"><span class="site-ic">💉</span>Glute R</div>
-        <div class="site" onclick="selSite(this,'Delt L')"><span class="site-ic">💪</span>Delt L</div>
-        <div class="site" onclick="selSite(this,'Delt R')"><span class="site-ic">💪</span>Delt R</div>
-        <div class="site" onclick="selSite(this,'SubQ')"><span class="site-ic">📍</span>SubQ</div>
-        <div class="site" onclick="selSite(this,'Oral')"><span class="site-ic">💊</span>Oral</div>
-        <div class="site" onclick="selSite(this,'Nasal')"><span class="site-ic">👃</span>Nasal</div>
-        <div class="site" onclick="selSite(this,'Topical')"><span class="site-ic">🖐</span>Topical</div>
+        <div class="site" onclick="selSite(this,'Abdomen L')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/></svg></span>Abd L</div>
+        <div class="site" onclick="selSite(this,'Abdomen R')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/></svg></span>Abd R</div>
+        <div class="site" onclick="selSite(this,'Thigh L')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M9 3c0 4-1 6-1 10s2 8 2 8M15 3c0 4 1 5 1 9s-2 9-2 9"/><path d="M8 8h8"/></svg></span>Thigh L</div>
+        <div class="site" onclick="selSite(this,'Thigh R')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M9 3c0 4-1 6-1 10s2 8 2 8M15 3c0 4 1 5 1 9s-2 9-2 9"/><path d="M8 8h8"/></svg></span>Thigh R</div>
+        <div class="site" onclick="selSite(this,'Glute L')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg></span>Glute L</div>
+        <div class="site" onclick="selSite(this,'Glute R')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg></span>Glute R</div>
+        <div class="site" onclick="selSite(this,'Delt L')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M6 9a6 6 0 0112 0v2a4 4 0 01-4 4h-4a4 4 0 01-4-4z"/><path d="M6 11c-2 1-3 3-3 6M18 11c2 1 3 3 3 6"/></svg></span>Delt L</div>
+        <div class="site" onclick="selSite(this,'Delt R')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M6 9a6 6 0 0112 0v2a4 4 0 01-4 4h-4a4 4 0 01-4-4z"/><path d="M6 11c-2 1-3 3-3 6M18 11c2 1 3 3 3 6"/></svg></span>Delt R</div>
+        <div class="site" onclick="selSite(this,'SubQ')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 21s7-6.5 7-12a7 7 0 00-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span>SubQ</div>
+        <div class="site" onclick="selSite(this,'Oral')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M12 8v8"/></svg></span>Oral</div>
+        <div class="site" onclick="selSite(this,'Nasal')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M12 3v9a3 3 0 003 3M12 12a3 3 0 01-3 3M8 18h8"/></svg></span>Nasal</div>
+        <div class="site" onclick="selSite(this,'Topical')"><span class="site-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M7 11V6a1.5 1.5 0 013 0v4M10 10V4a1.5 1.5 0 013 0v6M13 10V5a1.5 1.5 0 013 0v6M16 11V7a1.5 1.5 0 013 0v6a7 7 0 01-7 7h-1a7 7 0 01-6-4l-2-4a1.5 1.5 0 012.6-1.5L7 12"/></svg></span>Topical</div>
       </div>
     </div>
     <div class="fg"><label class="fl">Date &amp; Time</label><input class="fi" id="l-time" type="datetime-local"></div>
@@ -1200,7 +1202,7 @@ tr:active td{background:var(--card2)}
 // ═══════════════════════════════════════════════════════════
 // v2.0 INFRASTRUCTURE
 // ═══════════════════════════════════════════════════════════
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 const CURRENT_SCHEMA = 2;
 const APP_KEYS = ['protocol_data','pt_backup','saved_doses','saved_stacks',
   'pt_cycle_reminded','pt_last_backup_remind','pt_premigration_v1',
@@ -2069,7 +2071,7 @@ function togDay(pid,day,e){
 function rLog(){
   const el=document.getElementById('log-list');if(!el)return;
   const logs=[...D.logs].sort((a,b)=>new Date(b.t)-new Date(a.t));
-  if(!logs.length){el.innerHTML=`<div class="empty"><div class="empty-ic">📋</div><div class="empty-t">No logs yet</div>Tap + to log your first dose</div>`;return;}
+  if(!logs.length){el.innerHTML=`<div class="empty"><div class="empty-ic" style="color:var(--text-muted)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></div><div class="empty-t">No logs yet</div>Tap + to log your first dose</div>`;return;}
   const g={};logs.forEach(l=>{const d=l.t.split('T')[0];if(!g[d])g[d]=[];g[d].push(l);});
   let h='';
   Object.keys(g).sort((a,b)=>b.localeCompare(a)).forEach(date=>{
@@ -2186,7 +2188,7 @@ function fmtDaysLeft(days){
 function rInv(){
   const el=document.getElementById('inv-list');
   if(!D.inventory.length){
-    el.innerHTML=`<div class="empty"><div class="empty-ic">📦</div><div class="empty-t">No stock recorded</div><div>Tap + Add Stock to get started</div></div>`;
+    el.innerHTML=`<div class="empty"><div class="empty-ic" style="color:var(--text-muted)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg></div><div class="empty-t">No stock recorded</div><div>Tap + Add Stock to get started</div></div>`;
     return;
   }
   // Group by compound
@@ -2227,7 +2229,7 @@ function rInv(){
         </div>
         <div class="inv-size-btns">
           ${inStore>0?`<button class="inv-action-btn open" onclick="openVial('${pid}','${v.id}',event)">Open →</button>`:''}
-          ${inUse>0?`<button class="inv-action-btn finish" onclick="finishVial('${pid}','${v.id}',event)">Finish ✓</button>`:''}
+          ${inUse>0?`<button class="inv-action-btn finish" onclick="finishVial('${pid}','${v.id}',event)">Finish <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M20 6L9 17l-5-5"/></svg></button>`:''}
           <button class="inv-action-btn" onclick="openEditInv('${pid}','${v.id}',event)" style="font-size:11px">Edit</button>
         </div>
       </div>`;
@@ -2236,7 +2238,7 @@ function rInv(){
     return`<div class="inv-card collapsed" id="invcard-${pid}">
       <div class="inv-card-hdr" onclick="toggleInvCard('inv-body-${pid}')" style="cursor:pointer">
         <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-          <div style="width:9px;height:9px;border-radius:50%;background:${c?c.color:'#fff'};flex-shrink:0"></div>
+          <div style="width:9px;height:9px;border-radius:50%;background:${c?c.color:'var(--text-muted)'};flex-shrink:0"></div>
           <div style="font-size:15px;font-weight:700;flex:1">${c?esc(c.name):'Unknown'}</div>
           <div style="font-size:11px;color:var(--text-secondary)">${totalVials} vial${totalVials!==1?'s':''} · ${c&&c.active?'Active':'Inactive'}</div>
         </div>
@@ -2450,7 +2452,7 @@ function rHist(){
 
   const el=document.getElementById('hist-list');
   if(!D.history||!D.history.length){
-    el.innerHTML=`<div class="empty"><div class="empty-ic">📜</div><div class="empty-t">No history yet</div>Changes appear here after saving a protocol update.</div>`;
+    el.innerHTML=`<div class="empty"><div class="empty-ic" style="color:var(--text-muted)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M8 3h10a2 2 0 012 2v14a2 2 0 01-2 2H8M8 3a2 2 0 00-2 2v0a2 2 0 01-2 2H3M8 3v14a2 2 0 01-2 2v0a2 2 0 01-2-2V7"/><path d="M11 8h6M11 12h6"/></svg></div><div class="empty-t">No history yet</div>Changes appear here after saving a protocol update.</div>`;
     return;
   }
   if(!cur){
@@ -2488,7 +2490,7 @@ function rHist(){
         </div>
       </div>`;
     } else {
-      el.innerHTML=`<div class="empty"><div class="empty-ic">📜</div><div class="empty-t">No history for this compound</div></div>`;
+      el.innerHTML=`<div class="empty"><div class="empty-ic" style="color:var(--text-muted)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M8 3h10a2 2 0 012 2v14a2 2 0 01-2 2H8M8 3a2 2 0 00-2 2v0a2 2 0 01-2 2H3M8 3v14a2 2 0 01-2 2v0a2 2 0 01-2-2V7"/><path d="M11 8h6M11 12h6"/></svg></div><div class="empty-t">No history for this compound</div></div>`;
     }
     return;
   }
@@ -2566,8 +2568,8 @@ function updateDateNav(){
   document.getElementById('nav-next-btn').disabled=viewDate>=localDateStr(maxDate);
   // Show banner for past or future
   const banner=document.getElementById('past-banner');
-  if(isFuture){banner.classList.remove('hidden');banner.textContent='📅 Viewing a future day — pre-tick doses in advance';}
-  else if(!isToday){banner.classList.remove('hidden');banner.textContent='📅 Viewing a past day — tap to mark doses taken';}
+  if(isFuture){banner.classList.remove('hidden');banner.textContent='Viewing a future day — pre-tick doses in advance';}
+  else if(!isToday){banner.classList.remove('hidden');banner.textContent='Viewing a past day — tap to mark doses taken';}
   else{banner.classList.add('hidden');}
 }
 let currentRecTab='stats';
@@ -3036,7 +3038,7 @@ function renderOilCompounds(){
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
         <input class="fi" style="flex:1;padding:8px 10px;font-size:14px;font-weight:600" placeholder="Compound name" value="${esc(c.name)}"
           oninput="oilCompounds[${i}].name=this.value;calcOil()">
-        <button onclick="removeOilCompound('${c.id}')" style="background:var(--danger-soft);border:1px solid var(--danger);color:var(--danger);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;flex-shrink:0">✕</button>
+        <button onclick="removeOilCompound('${c.id}')" style="background:var(--danger-soft);border:1px solid var(--danger);color:var(--danger);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
       <div class="fr">
         <div><label class="fl">Concentration (per ml)</label>
@@ -3082,7 +3084,7 @@ function calcOil(){try{
     const r=oilCalc({conc:c.conc, concUnit:c.unit, dose:c.dose, doseUnit:c.doseUnit});
     if(!r.ok){
       // Show a row-level message only if the user has started entering values.
-      if(el) el.textContent=(c.conc||c.dose)?('⚠ '+r.error):'';
+      if(el) el.textContent=(c.conc||c.dose)?('<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L14 3.9a2 2 0 00-3.4 0z"/></svg> '+r.error):'';
       return;
     }
     const vol=r.ml;
@@ -3521,7 +3523,7 @@ function updatePinLabel(){} // kept for compatibility
 
 async function masterReset(){
   // Step 1: First confirmation
-  if(!(await ptConfirm('⚠️ MASTER RESET\n\nThis will permanently delete ALL data including:\n• All compounds & protocols\n• All dose logs\n• All inventory\n• All history\n\nThis cannot be undone.\n\nAre you sure?'))) return;
+  if(!(await ptConfirm('MASTER RESET\n\nThis will permanently delete ALL data including:\n• All compounds & protocols\n• All dose logs\n• All inventory\n• All history\n\nThis cannot be undone.\n\nAre you sure?'))) return;
   // Step 2: Second confirmation to prevent accidental wipes
   if(!(await ptConfirm('This erases ALL data on this device, including every backup (migration and pre-import recovery copies). This cannot be undone.','Confirm erase'))) return;
   // Genuine typed confirmation (wording now matches behaviour).
@@ -3551,7 +3553,7 @@ async function checkBackupReminder(){try{
     // Only show if user has actual data worth backing up
     if(D.logs&&D.logs.length>0){
       setTimeout(async ()=>{
-        if(await ptConfirm('📦 Weekly Backup Reminder\n\nIt\'s been a week since your last backup prompt.\n\nTap OK to save a backup now, or Cancel to skip.')){
+        if(await ptConfirm('Weekly Backup Reminder\n\nIt\'s been a week since your last backup prompt.\n\nTap OK to save a backup now, or Cancel to skip.')){
           exportData();
         }
       }, 1500);
@@ -3867,7 +3869,7 @@ function showCycleReminder(list, idx, reminded){
 
   // Create modal overlay
   const overlay = document.createElement('div');
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,51,0.85);z-index:999;display:flex;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom,0px)';
+  overlay.style.cssText='position:fixed;inset:0;background:var(--overlay);z-index:999;display:flex;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom,0px)';
 
   const endFmt = new Date(endDate+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long',year:'numeric'});
 
@@ -3882,34 +3884,34 @@ function showCycleReminder(list, idx, reminded){
 
   const inp = (id,type,val,ph,extra='')=>
     `<input type="${type}" id="${id}" value="${val||''}" placeholder="${ph}"
-      style="width:100%;padding:10px 12px;border:1.5px solid #dde4f5;border-radius:10px;font-size:14px;color:#0033A0;background:#f0f4ff;box-sizing:border-box" ${extra}>`;
+      style="width:100%;padding:10px 12px;border:1.5px solid var(--border-primary);border-radius:10px;font-size:14px;color:var(--text-primary);background:var(--surface-interactive);box-sizing:border-box" ${extra}>`;
   const sel = (id,opts)=>
-    `<select id="${id}" style="width:100%;padding:10px 12px;border:1.5px solid #dde4f5;border-radius:10px;font-size:14px;color:#0033A0;background:#f0f4ff">${opts}</select>`;
-  const lbl = t=>`<div style="font-size:11px;font-weight:700;color:#0033A0;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 5px">${t}</div>`;
+    `<select id="${id}" style="width:100%;padding:10px 12px;border:1.5px solid var(--border-primary);border-radius:10px;font-size:14px;color:var(--text-primary);background:var(--surface-interactive)">${opts}</select>`;
+  const lbl = t=>`<div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 5px">${t}</div>`;
 
   overlay.innerHTML = `
-    <div id="cycle-sheet" style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;will-change:transform">
-      <div style="padding:10px 0 0"><div style="width:38px;height:5px;background:#c9d4ee;border-radius:99px;margin:0 auto"></div></div>
+    <div id="cycle-sheet" style="background:var(--surface-primary);border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;will-change:transform">
+      <div style="padding:10px 0 0"><div style="width:38px;height:5px;background:var(--border-primary);border-radius:99px;margin:0 auto"></div></div>
       <div style="padding:10px 20px 0">
-        <div style="text-align:center;margin-bottom:4px;font-size:26px">🔔</div>
-        <div style="text-align:center;font-size:17px;font-weight:700;color:#0033A0;margin-bottom:4px">Cycle Complete</div>
-        <div style="text-align:center;font-size:13px;color:#666;margin-bottom:16px">
+        <div style="text-align:center;margin-bottom:4px;font-size:26px;color:var(--brand)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg></div>
+        <div style="text-align:center;font-size:17px;font-weight:700;color:var(--text-primary);margin-bottom:4px">Cycle Complete</div>
+        <div style="text-align:center;font-size:13px;color:var(--text-secondary);margin-bottom:16px">
           <strong>${esc(c.name)}</strong> ended ${endFmt}
         </div>
 
-        <div style="background:#f0f4ff;border-radius:12px;padding:14px;margin-bottom:4px">
+        <div style="background:var(--surface-secondary);border-radius:12px;padding:14px;margin-bottom:4px">
           ${lbl('Next Cycle Start')}
           ${inp('cycle-next-start','date',addDays(endDate,1),'')}
 
           ${lbl('Duration (weeks)')}
           <div style="display:flex;gap:8px;align-items:center">
-            ${inp('cycle-next-weeks','number',c.weeks||'','e.g. 8','min="1" max="52" style="width:100%;padding:10px 12px;border:1.5px solid #dde4f5;border-radius:10px;font-size:14px;color:#0033A0;background:#fff;box-sizing:border-box"')}
-            <span style="font-size:12px;color:#888;white-space:nowrap">weeks</span>
+            ${inp('cycle-next-weeks','number',c.weeks||'','e.g. 8','min="1" max="52" style="width:100%;padding:10px 12px;border:1.5px solid var(--border-primary);border-radius:10px;font-size:14px;color:var(--text-primary);background:var(--surface-interactive);box-sizing:border-box"')}
+            <span style="font-size:12px;color:var(--text-muted);white-space:nowrap">weeks</span>
           </div>
-          <div style="font-size:11px;color:#888;margin-top:4px">Leave blank to keep current end date type</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Leave blank to keep current end date type</div>
         </div>
 
-        <div style="background:#f0f4ff;border-radius:12px;padding:14px;margin-bottom:4px">
+        <div style="background:var(--surface-secondary);border-radius:12px;padding:14px;margin-bottom:4px">
           ${lbl('Dose')}
           <div style="display:flex;gap:8px">
             ${inp('cycle-next-dose','number',c.dose||'','e.g. 500')}
@@ -3925,24 +3927,24 @@ function showCycleReminder(list, idx, reminded){
           ${lbl('Vial Size')}
           <div style="display:flex;gap:8px;align-items:center">
             ${inp('cycle-next-vial','number',c.vialSize||'','e.g. 5')}
-            <span style="font-size:12px;color:#888;white-space:nowrap">mg / vial</span>
+            <span style="font-size:12px;color:var(--text-muted);white-space:nowrap">mg / vial</span>
           </div>
 
           ${lbl('BAC Water')}
           <div style="display:flex;gap:8px;align-items:center">
             ${inp('cycle-next-bac','number',c.bacWater||'','e.g. 2')}
-            <span style="font-size:12px;color:#888;white-space:nowrap">ml</span>
+            <span style="font-size:12px;color:var(--text-muted);white-space:nowrap">ml</span>
           </div>
         </div>
       </div>
 
       <div style="padding:12px 20px 32px">
         <button id="cycle-btn-schedule"
-          style="width:100%;padding:14px;background:#0033A0;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px">
-          ✅ Schedule Next Cycle
+          style="width:100%;padding:14px;background:var(--btn-primary-bg);color:var(--btn-primary-text);border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px">
+          Schedule Next Cycle
         </button>
         <button id="cycle-btn-dismiss"
-          style="width:100%;padding:13px;background:none;color:#0033A0;border:1.5px solid #0033A0;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer">
+          style="width:100%;padding:13px;background:var(--surface-raised);color:var(--text-primary);border:1.5px solid var(--border-primary);border-radius:12px;font-size:15px;font-weight:600;cursor:pointer">
           Remind me later
         </button>
       </div>
@@ -3981,7 +3983,7 @@ function showCycleReminder(list, idx, reminded){
       const dy=curY-startY;
       if(dy>0){
         sheet.style.transform='translateY('+dy+'px)';
-        overlay.style.background='rgba(0,0,51,'+Math.max(0.25,0.85-dy/400)+')';
+        overlay.style.background='rgba(4,7,10,'+Math.max(0.25,0.72-dy/400)+')';
       }
     }, {passive:true});
     const settle=function(){
@@ -3996,7 +3998,7 @@ function showCycleReminder(list, idx, reminded){
         setTimeout(function(){ dismissCycleReminder(overlay._cycleKey, overlay._cycleIdx); }, 200);
       } else {
         sheet.style.transform='';
-        overlay.style.background='rgba(0,0,51,0.85)';
+        overlay.style.background='var(--overlay)';
       }
     };
     sheet.addEventListener('touchend', settle, {passive:true});
@@ -4057,7 +4059,7 @@ function scheduleCycleNext(cid, key, listIdx){
   document.getElementById('cycle-reminder-overlay')?.remove();
 
   const nextFmt = new Date(startDate+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'long'});
-  ptAlert('✅ Next cycle scheduled from '+nextFmt+'!');
+  ptAlert('Next cycle scheduled from '+nextFmt+'!');
 
   // Show next reminder in queue
   setTimeout(()=>showCycleReminder(list, listIdx+1, reminded), 300);
