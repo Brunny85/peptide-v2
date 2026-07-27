@@ -541,7 +541,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2-TODAY-MOCKUP</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1655</div>
       </div>
     </div>
   </div>
@@ -1221,7 +1221,7 @@ tr:active td{background:var(--card2)}
 // ═══════════════════════════════════════════════════════════
 // v2.0 INFRASTRUCTURE
 // ═══════════════════════════════════════════════════════════
-const APP_VERSION = '2.1';
+const APP_VERSION = '2.2';
 const CURRENT_SCHEMA = 2;
 const APP_KEYS = ['protocol_data','pt_backup','saved_doses','saved_stacks',
   'pt_cycle_reminded','pt_last_backup_remind','pt_premigration_v1',
@@ -3313,7 +3313,9 @@ function drawOilSyringe(compounds,totalMl){try{
     for(let u=0;u<=maxUnits+0.001;u+=uStep){
       const ty=barrelBot-Math.round((u/maxUnits)*barrelH);
       const maj=u%(uStep*2)===0;
-      ticks+=`<line x1="198" y1="${ty}" x2="${198+(maj?18:10)}" y2="${ty}" stroke="var(--text-muted)" stroke-width="${maj?1.5:1}"/>`;
+      const med=!maj && ((uStep*2)/uStep>=4) && (u%uStep===0);
+      const tw=maj?18:med?13:7, sw=maj?1.5:med?1.2:1;
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+tw}" y2="${ty}" stroke="var(--text-muted)" stroke-width="${sw}"/>`;
       if(maj)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-secondary)">${u}</text>`;
     }
   } else {
@@ -3373,16 +3375,26 @@ function drawSyringe(units){
   if(tickGroup){
     const step=syringeType==='im'?(syringeMaxMl<=1.0?10:syringeMaxMl<=2.0?20:30):(syringeMaxMl<=0.3?5:syringeMaxMl<=0.5?5:10);
     let ticks='';
-    for(let tu=0;tu<=maxUnits;tu+=step){
+    // Three-tier graduations. Major numbers LOCKED to real-syringe scale.
+    const majorU = syringeType==='im' ? 50 : (syringeMaxMl<=0.5 ? 10 : 20);
+    const minorU = syringeType==='im' ? 10 : (syringeMaxMl<=0.5 ? 2 : 5);
+    const mediumU = majorU/2;
+    for(let tu=0;tu<=maxUnits+0.001;tu+=minorU){
       const ty=barrelBot-Math.round((tu/maxUnits)*barrelH);
-      const isMajor=tu%(step*2)===0;
-      const tickW=isMajor?18:10;
-      const lbl=isMajor?(syringeType==='im'?(tu*0.01).toFixed(1)+'ml':tu.toString()):'';
-      ticks+=`<line x1="198" y1="${ty}" x2="${198+tickW}" y2="${ty}" stroke="var(--text-muted)" stroke-width="${isMajor?1.5:1}"/>`;
+      const isMajor=Math.abs(tu%majorU)<0.001;
+      const isMedium=!isMajor && (majorU/minorU>=4) && Math.abs(tu%mediumU)<0.001;
+      const tickW=isMajor?18:isMedium?13:7;             // 100% / 70% / 40%
+      const sw=isMajor?1.5:isMedium?1.2:1;
+      const lbl=isMajor?(syringeType==='im'?(tu*0.01).toFixed(1)+'ml':Math.round(tu).toString()):'';
+      ticks+=`<line x1="198" y1="${ty}" x2="${198+tickW}" y2="${ty}" stroke="var(--text-muted)" stroke-width="${sw}"/>`;
       if(lbl)ticks+=`<text x="222" y="${ty+4}" font-family="-apple-system,sans-serif" font-size="11" fill="var(--text-secondary)" text-anchor="start">${lbl}</text>`;
       ticks+=`<line x1="122" y1="${ty}" x2="${122-tickW/2}" y2="${ty}" stroke="var(--border-primary)" stroke-width="1"/>`;
     }
-    if(u>0)ticks+=`<line x1="115" y1="${fillY}" x2="205" y2="${fillY}" stroke="var(--brand)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    // Dose marker: extend toward the label column + anchor dot for exact graduation read.
+    if(u>0){
+      ticks+=`<line x1="115" y1="${fillY}" x2="216" y2="${fillY}" stroke="var(--brand)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+      ticks+=`<circle cx="216" cy="${fillY}" r="2.5" fill="var(--brand)"/>`;
+    }
     tickGroup.innerHTML=ticks;
   }
   const ulbl=document.getElementById('syr-units-label');
