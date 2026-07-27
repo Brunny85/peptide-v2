@@ -599,7 +599,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1813</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1823</div>
       </div>
     </div>
   </div>
@@ -2653,8 +2653,16 @@ function rHist(){
   // Protocol identity = dose/unit/route/freq/time/days/clock + active state.
   // Deliberately EXCLUDES cycle dates (start/end/durtype/weeks): a cycle-date drift
   // or recompute shouldn't split one protocol into multiple periods.
-  const sig=sn=>['dose','unit','route','freq','time','days','clock','active']
-    .map(k=>Array.isArray(sn[k])?[...sn[k]].sort().join(','):(sn[k]==null?'':sn[k])).join('|');
+  // Canonical days: empty or all-7 both mean "every day" -> ''. Only day-specific
+  // frequencies (the Nx/week ones) let the day selection matter for identity.
+  const DAY_SPECIFIC=new Set(['2xweek','3xweek','4xweek','5xweek']);
+  const normDays=sn=>{
+    if(!DAY_SPECIFIC.has(sn.freq)) return ''; // days irrelevant to identity for this freq
+    const d=(sn.days||[]).slice().sort((a,b)=>a-b);
+    if(d.length===0 || d.length===7) return ''; // every day
+    return d.join(',');
+  };
+  const sig=sn=>[sn.dose,sn.unit,sn.route,sn.freq,sn.time,normDays(sn),sn.clock||'',sn.active].join('|');
   const periods=[];
   snaps.forEach(h=>{
     const last=periods[periods.length-1];
@@ -2688,7 +2696,7 @@ function rHist(){
         <div style="font-size:13px;font-weight:700;color:var(--text-primary)">${idx===0?'Current protocol':'Previous'}</div>
         <div class="hist-date">${rangeLbl(p,idx)}</div>
       </div>
-      <button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="toggleAdherence('${cur}','${p.from}','${p.to||''}')">Calendar</button>
+      <button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="toggleAdherence('${cur}','${p.from}','${p.to||''}')">Doses ▾</button>
     </div>
     <div style="padding:11px 14px;font-size:14px;color:var(--text-primary);font-weight:600">${esc(summ(p.snap))}</div>
     <div style="padding:0 14px 11px;font-size:12px;color:var(--text-secondary)">${esc(p.snap.route||'')}</div>
@@ -3942,11 +3950,12 @@ async function latestSnapFor(cid){
 }
 function sameProtocolConfig(a,b){
   if(!a||!b) return false;
-  // Protocol-defining fields only. Cycle dates (start/end/durtype/weeks) are intentionally
-  // NOT compared here — a date recompute shouldn't count as a protocol change for snapshot
-  // purposes — but name/vial/notes ARE, since editing those is a deliberate change worth recording.
-  const keys=['name','dose','unit','route','freq','time','days','clock','vialSize','vialUnit','bacWater','active','color','doseNotes','timingNotes'];
-  const norm=v=>Array.isArray(v)?[...v].sort().join(','):(v===undefined||v===null?'':String(v));
+  const DAY_SPECIFIC=new Set(['2xweek','3xweek','4xweek','5xweek']);
+  const normDays=sn=>{ if(!DAY_SPECIFIC.has(sn.freq)) return ''; const d=(sn.days||[]).slice().sort((x,y)=>x-y); return (d.length===0||d.length===7)?'':d.join(','); };
+  if(normDays(a)!==normDays(b)) return false;
+  // Protocol fields (cycle dates excluded; days handled above via canonical form).
+  const keys=['name','dose','unit','route','freq','time','clock','vialSize','vialUnit','bacWater','active','color','doseNotes','timingNotes'];
+  const norm=v=>(v===undefined||v===null?'':String(v));
   return keys.every(k=>norm(a[k])===norm(b[k]));
 }
 function manualSave(){
@@ -4403,6 +4412,18 @@ init();
 // ── Dev-only test hook (safe in production: an unused function on window). ──
 // Usage in Safari console:  window.PT_debug.showCycleReminder()
 window.PT_debug = {
+  // Diagnostic: dump raw history for a compound so we can see why periods split.
+  dumpHistory(name){
+    const c=D.compounds.find(x=>(x.name||'').toLowerCase().includes((name||'').toLowerCase()));
+    if(!c){ console.log('No compound matching',name); console.log('Compounds:',D.compounds.map(x=>x.name)); return; }
+    const hist=(D.history||[]).filter(h=>h.cid===c.id).sort((a,b)=>new Date(a.savedAt)-new Date(b.savedAt));
+    console.log('=== History for',c.name,'(',hist.length,'snapshots ) ===');
+    hist.forEach((h,i)=>{
+      const s=h.snap;
+      console.log(`#${i} ${h.savedAt.slice(0,10)} reason=${h.reason}`, JSON.stringify({dose:s.dose,unit:s.unit,route:s.route,freq:s.freq,time:s.time,days:s.days,clock:s.clock,active:s.active,start:s.start,end:s.end}));
+    });
+    return hist.length;
+  },
   showCycleReminder(){
     const c = (D.compounds && D.compounds[0]) ||
       {id:'debug', name:'Debug Compound', dose:250, unit:'mcg', freq:'daily',
