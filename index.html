@@ -521,7 +521,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.1 · build b0726.1905</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.1 · build b0727.0619</div>
       </div>
     </div>
   </div>
@@ -4076,6 +4076,19 @@ function dismissCycleReminder(key, listIdx){
 }
 
 init();
+
+// ── Dev-only test hook (safe in production: an unused function on window). ──
+// Usage in Safari console:  window.PT_debug.showCycleReminder()
+window.PT_debug = {
+  showCycleReminder(){
+    const c = (D.compounds && D.compounds[0]) ||
+      {id:'debug', name:'Debug Compound', dose:250, unit:'mcg', freq:'daily',
+       time:'AM', weeks:8, vialSize:5, bacWater:2};
+    const today = new Date();
+    const endDate = today.toISOString().slice(0,10);
+    showCycleReminder([{c, endDate, key:'debug-'+endDate}], 0, {});
+  }
+};
 </script>
 </body>
 </html>
