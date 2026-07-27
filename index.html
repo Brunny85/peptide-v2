@@ -492,6 +492,26 @@ tr:active td{background:var(--card2)}
 .tickall.complete .tickall-lbl{color:var(--success-text)}
 /* Item 7: natural column heights */
 .ampm{align-items:flex-start}
+
+/* Records: date-recall calendar */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav-btn{width:36px;height:36px;border-radius:10px;background:var(--surface-interactive);
+  border:none;color:var(--text-primary);font-size:20px;cursor:pointer;display:flex;
+  align-items:center;justify-content:center}
+.cal-title{font-size:15px;font-weight:700;color:var(--text-primary)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+.cal-dow{font-size:10px;font-weight:650;text-transform:uppercase;color:var(--text-muted);
+  text-align:center;padding:4px 0}
+.cal-day{aspect-ratio:1;border-radius:9px;background:var(--surface-secondary);border:none;
+  color:var(--text-secondary);font-size:13px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;position:relative;font-family:var(--sans)}
+.cal-day.empty{background:transparent;cursor:default}
+.cal-day.has-data{color:var(--text-primary);font-weight:600}
+.cal-day.has-data::after{content:'';position:absolute;bottom:5px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--brand)}
+.cal-day.selected{background:var(--brand);color:var(--text-on-brand);font-weight:700}
+.cal-day.future{opacity:.35;cursor:default}
+.cal-selected-lbl{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -541,7 +561,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1655</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1707</div>
       </div>
     </div>
   </div>
@@ -865,12 +885,13 @@ tr:active td{background:var(--card2)}
 
         <!-- By Date view -->
         <div id="hist-date-view" style="display:none">
-          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
-            <select class="fs" id="hist-month-filter" onchange="rHistByDate()" style="flex:1;margin-bottom:0">
-              <option value="">— Select month/year —</option>
-            </select>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="calShift(-1)">‹</button>
+            <div class="cal-title" id="cal-title">—</div>
+            <button class="cal-nav-btn" onclick="calShift(1)">›</button>
           </div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Shows your full protocol as it was during that period.</p>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div class="cal-selected-lbl" id="cal-sel-lbl"></div>
           <div id="hist-date-list"></div>
         </div>
       </div>
@@ -1541,7 +1562,7 @@ function runMigration(sourcePayload){
   return {ok:true, flags:flags, candidate:candidate};
 }
 
-let _migrationFlags=[]; let _migrationError=null; let _blockAutosave=false; let _recoveryNotice=null;
+let _migrationFlags=[]; window._calYM=null; window._calSelected=null; let _migrationError=null; let _blockAutosave=false; let _recoveryNotice=null;
 function load(){
   // Source selection: protocol_data is authoritative; pt_backup is recovery only.
   // No log-count heuristic. Future schemas are rejected, not loaded.
@@ -2361,152 +2382,88 @@ function setHistMode(mode){
 }
 
 function rHistByDate(){
-  const sel = document.getElementById('hist-month-filter');
-  const cur = sel.value;
-
-  // Build list of unique month/years from history
-  const months = {};
-  (D.history||[]).forEach(h=>{
-    const d = new Date(h.savedAt);
-    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    const label = d.toLocaleDateString([],{month:'long',year:'numeric'});
-    months[key] = label;
-  });
-
-  sel.innerHTML = '<option value="">— Select month/year —</option>' +
-    Object.keys(months).sort((a,b)=>b.localeCompare(a))
-      .map(k=>`<option value="${k}" ${k===cur?'selected':''}>${months[k]}</option>`).join('');
-
-  const el = document.getElementById('hist-date-list');
-  if(!cur){ el.innerHTML=''; return; }
-
-  if(!D.history||!D.history.length){
-    el.innerHTML=`<div class="empty"><div class="empty-ic"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></div><div class="empty-t">No history yet</div></div>`;
-    return;
+  // Calendar-based stack recall. Reconstructs the protocol as configured on a tapped
+  // date, using the latest snapshot on-or-before that date per compound.
+  if(typeof _calYM==='undefined' || !_calYM){
+    const now=new Date();
+    window._calYM={y:now.getFullYear(), m:now.getMonth()}; // m: 0-11
   }
+  const grid=document.getElementById('cal-grid'); if(!grid) return;
+  const title=document.getElementById('cal-title');
+  const {y,m}=_calYM;
+  title.textContent=new Date(y,m,1).toLocaleDateString([],{month:'long',year:'numeric'});
 
-  const [yr, mo] = cur.split('-').map(Number);
-  const monthEnd = new Date(yr, mo, 0, 23, 59, 59); // last day of month
-  const monthStart = new Date(yr, mo-1, 1);
+  // which day-keys (YYYY-MM-DD) have any snapshot on/before them within this month?
+  const hist=(D.history||[]).slice();
+  const todayStr=new Date().toISOString().slice(0,10);
+  // a day "has data" if at least one snapshot exists on-or-before that day
+  const firstSnap = hist.length ? hist.map(h=>h.savedAt).sort()[0].slice(0,10) : null;
 
-  // Group by compound, get latest snap before monthEnd
-  const byCompound = {};
-  D.history.forEach(h=>{
-    const savedAt = new Date(h.savedAt);
-    if(savedAt > monthEnd) return;
-    if(!byCompound[h.cid] || new Date(byCompound[h.cid].savedAt) < savedAt){
-      byCompound[h.cid] = h;
+  const dow=['S','M','T','W','T','F','S'];
+  let html=dow.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const firstDay=new Date(y,m,1).getDay();      // 0=Sun
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isFuture = ds>todayStr;
+    const hasData = firstSnap && ds>=firstSnap && !isFuture;
+    const sel = (_calSelected===ds)?' selected':'';
+    const cls = isFuture?'future':(hasData?'has-data':'');
+    const click = (isFuture)?'':`onclick="calSelectDate('${ds}')"`;
+    html+=`<button class="cal-day ${cls}${sel}" ${click}>${d}</button>`;
+  }
+  grid.innerHTML=html;
+
+  // render the reconstructed stack for the selected date (if any)
+  const lbl=document.getElementById('cal-sel-lbl');
+  const list=document.getElementById('hist-date-list');
+  if(!_calSelected){ lbl.textContent=''; list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">Tap a highlighted date to see your protocol on that day.</div>'; return; }
+
+  const selDate=_calSelected;
+  lbl.textContent='Protocol on '+new Date(selDate+'T12:00:00').toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+  // reconstruct: for each compound (by cid), latest snapshot with savedAt date <= selDate
+  const byCid={};
+  hist.forEach(h=>{
+    if(h.savedAt.slice(0,10) <= selDate){
+      if(!byCid[h.cid] || h.savedAt > byCid[h.cid].savedAt) byCid[h.cid]=h;
     }
   });
-
-  // Fall back to current protocol for compounds with no history in/before this period
-  D.compounds.forEach(c=>{
-    if(!byCompound[c.id]){
-      // Include if compound was likely active then (no history = use current settings)
-      byCompound[c.id] = {
-        id:'fallback-'+c.id, cid:c.id, name:c.name,
-        savedAt:monthEnd.toISOString(), snap:{...c}
-      };
-    }
+  const snaps=Object.values(byCid).map(h=>h.snap).filter(sn=>{
+    // was it active/in-window on selDate?
+    if(!sn) return false;
+    if(sn.active===false) return false;
+    if(sn.start && selDate < sn.start) return false;
+    const end = sn.end || (sn.durtype==='weeks'&&sn.weeks&&sn.start ? (()=>{const sd=new Date(sn.start+'T12:00:00');sd.setDate(sd.getDate()+sn.weeks*7);return sd.toISOString().slice(0,10);})() : null);
+    if(end && selDate > end) return false;
+    return true;
   });
 
-  const entries = Object.values(byCompound).filter(h=>h.snap && h.snap.active !== false);
-
-  if(!entries.length){
-    el.innerHTML=`<div class="empty"><div class="empty-ic"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></div><div class="empty-t">No protocol data for this period</div></div>`;
+  if(!snaps.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">No active compounds recorded on this date.</div>';
     return;
   }
-
-  const FL2={daily:'Daily',bid:'Twice Daily',eod:'Every Other Day',e3d:'Every 3 Days',
-    '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
-    weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
-  const DOW_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const fmtDays=days=>(!days||!days.length)?'Every day':[...days].sort((a,b)=>a-b).map(d=>DOW_NAMES[d]).join(', ');
-
-  const monthLabel = months[cur] || cur;
-
-  el.innerHTML = `
-    <div style="background:var(--surface-secondary);border-radius:10px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-size:13px;font-weight:700">${entries.length} active compound${entries.length!==1?'s':''}</div>
-        <div style="font-size:11px;color:var(--text2)">Protocol during ${monthLabel}</div>
-      </div>
-      <button class="btn btn-s btn-sm" onclick="importHistoryProtocol('${cur}')" style="font-size:11px;padding:6px 12px;white-space:nowrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg> Import Protocol</button>
+  snaps.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  list.innerHTML=snaps.map(sn=>`<div class="hist-entry">
+    <div class="hist-hdr">
+      <div style="width:9px;height:9px;border-radius:50%;background:${sn.color||'var(--text-muted)'};flex-shrink:0"></div>
+      <div style="font-weight:700;color:var(--text-primary)">${esc(sn.name)}</div>
     </div>
-    ${entries.sort((a,b)=>a.name.localeCompare(b.name)).map(h=>{
-      const s=h.snap;
-      return`<div class="hist-entry">
-        <div class="hist-hdr">
-          <div style="width:9px;height:9px;border-radius:50%;background:${s.color||'var(--accent)'}"></div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:700">${esc(h.name)}</div>
-            <div class="hist-date">${esc(s.dose)||'—'} ${esc(s.unit)||''} · ${FL2[s.freq]||s.freq||'—'} · ${s.time||'—'}</div>
-          </div>
-        </div>
-      </div>`;
-    }).join('')}`;
+    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${esc(sn.dose||'—')} ${esc(sn.unit||'')} · ${esc(sn.route||'')}${sn.time?' · '+esc(sn.time):''}</div>
+  </div>`).join('');
 }
-
-async function importHistoryProtocol(monthKey){
-  if(!monthKey) return;
-  const [yr, mo] = monthKey.split('-').map(Number);
-  const monthEnd = new Date(yr, mo, 0, 23, 59, 59);
-
-  const byCompound = {};
-  D.history.forEach(h=>{
-    const savedAt = new Date(h.savedAt);
-    if(savedAt > monthEnd) return;
-    if(!byCompound[h.cid] || new Date(byCompound[h.cid].savedAt) < savedAt){
-      byCompound[h.cid] = h;
-    }
-  });
-
-  const entries = Object.values(byCompound);
-  if(!entries.length) return;
-
-  const months = {};
-  const d = new Date(yr, mo-1, 1);
-  const label = d.toLocaleDateString([],{month:'long',year:'numeric'});
-
-  if(!(await ptConfirm('Import protocol from '+label+'? This will overwrite your current protocol settings for these '+entries.length+' compound(s).'))) return;
-
-  entries.forEach(h=>{
-    const snap = h.snap;
-    const idx = D.compounds.findIndex(c=>c.id===h.cid);
-    if(idx===-1){
-      // Compound doesn't exist - add it back
-      D.compounds.push({...snap, id:h.cid});
-    } else {
-      // Restore snap fields onto existing compound
-      const keep = {id:D.compounds[idx].id, name:D.compounds[idx].name};
-      D.compounds[idx] = {...snap, ...keep};
-    }
-  });
-
-  save();
-  render();
-  nav('records', document.querySelector('.tb[onclick*="records"]'));
-  setRecTab('hist');
-  ptAlert('Protocol imported from '+label+'!');
+function calShift(delta){
+  if(!_calYM) return;
+  let m=_calYM.m+delta, y=_calYM.y;
+  if(m<0){m=11;y--;} if(m>11){m=0;y++;}
+  window._calYM={y,m};
+  rHistByDate();
 }
-
-async function importCompoundHistory(histId){
-  const h = (D.history||[]).find(e=>e.id===histId);
-  if(!h) return;
-  const snap = h.snap;
-  if(!(await ptConfirm('Import this version of '+esc(h.name)+' into your current protocol?'))) return;
-  const idx = D.compounds.findIndex(c=>c.id===h.cid);
-  if(idx===-1){
-    D.compounds.push({...snap, id:h.cid});
-  } else {
-    const keep = {id:D.compounds[idx].id, name:D.compounds[idx].name};
-    D.compounds[idx] = {...snap, ...keep};
-  }
-  save();
-  render();
-  ptAlert(h.name+' protocol restored!');
+function calSelectDate(ds){
+  window._calSelected=ds;
+  rHistByDate();
 }
-
 function rHist(){
   // Populate compound filter
   const sel=document.getElementById('hist-filter');
@@ -2946,6 +2903,8 @@ function saveForm(){
       bacWater:document.getElementById('f-bac').value,
       color:fColor,active:true,
     });
+    // Snapshot on creation so the compound enters the historical timeline.
+    snapshotCompound(D.compounds[D.compounds.length-1], 'create');
   }
   save();render();closeOv('ov-form');
 }
