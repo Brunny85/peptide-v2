@@ -472,7 +472,27 @@ tr:active td{background:var(--card2)}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
-}</style>
+}
+/* Item 1: milestone card */
+.milestone-card{background:var(--surface-primary);border:1px solid var(--border-subtle);
+  border-radius:14px;padding:13px 16px;margin-bottom:14px}
+.milestone-lbl{font-size:11px;font-weight:650;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--text-muted);margin-bottom:4px}
+.milestone-body{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.35}
+.milestone-body .m-soon{color:var(--warning-text)}
+/* Item 2+3+4: compound card hierarchy — name+dot inline, draw amount prominent, breathing room */
+.ci-name{display:flex;align-items:center;gap:7px}
+.ci-draw{font-size:14px;font-weight:600;color:var(--text-primary);margin-top:6px;
+  display:flex;align-items:center;gap:5px}
+.ci-draw svg{color:var(--brand)}
+.ci-sub{margin-top:5px}
+.ci .dot{margin:0}
+/* Item 5: completion banner success accent */
+.tickall.complete .tickall-row{background:var(--success-soft)}
+.tickall.complete .tickall-lbl{color:var(--success-text)}
+/* Item 7: natural column heights */
+.ampm{align-items:flex-start}
+</style>
 </head>
 <body>
 <div id="app">
@@ -521,7 +541,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.1 · build b0727.0619</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2-TODAY-MOCKUP</div>
       </div>
     </div>
   </div>
@@ -713,10 +733,9 @@ tr:active td{background:var(--card2)}
       </div>
       <div id="expiry-legend"></div>
       <div class="past-banner hidden" id="past-banner"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg> Viewing a past day — tap to mark doses taken</div>
-      <div class="stats">
-        <div class="stat"><div class="stat-n c-ok" id="s-done">0</div><div class="stat-l">Done</div></div>
-        <div class="stat"><div class="stat-n c-warn" id="s-due">0</div><div class="stat-l">Remaining</div></div>
-        <div class="stat"><div class="stat-n c-accent" id="s-streak">0</div><div class="stat-l">Streak</div></div>
+      <div class="milestone-card" id="milestone">
+        <div class="milestone-lbl">Next Protocol Change</div>
+        <div class="milestone-body" id="milestone-body">—</div>
       </div>
       <div class="ampm" id="ampm"></div>
       <div class="tickall hidden" id="tickall">
@@ -1809,14 +1828,14 @@ function pinBadge(c){
     if(!concMcg) return '';
     const ml=doseMcg/concMcg;
     if(!isFinite(ml)||ml<=0) return '';
-    return '\u{1F489} '+ml.toFixed(2)+'ml';
+    return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> '+ml.toFixed(2)+'ml';
   }
   if(!bac) return '';
   const concMcg=toMcg(vs/bac, c.vialUnit||'mg');
   if(!concMcg) return '';
   const units=(doseMcg/concMcg)*100;
   if(!isFinite(units)||units<=0) return '';
-  return '\u{1F489} '+(units<10?units.toFixed(1):units.toFixed(0))+' units';
+  return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18 2l4 4M17 3l4 4-9 9H8v-4l9-9zM8 16l-4 4M11 8l5 5"/></svg> '+(units<10?units.toFixed(1):units.toFixed(0))+' units';
 }
 
 // Tapping the pin badge opens Calc with that compound already loaded
@@ -1828,6 +1847,13 @@ function openCalcFor(pid,e){
   if(sel){ sel.value=pid; loadFromProtocol(); }
 }
 
+function relDays(d){
+  if(d===0) return 'today';
+  if(d===1) return 'tomorrow';
+  if(d<=13) return 'in '+d+' days';
+  if(d<=60) return 'in '+Math.round(d/7)+' weeks';
+  return 'in '+d+' days';
+}
 function rToday(){
   const active=D.compounds.filter(c=>c.active);
   const due=active.filter(c=>isDue(c));
@@ -1847,9 +1873,31 @@ function rToday(){
       if(allDoneToday(c)) doneDoses++;
     }
   });
-  document.getElementById('s-done').textContent=doneDoses;
-  document.getElementById('s-due').textContent=totalDoses-doneDoses;
-  document.getElementById('s-streak').textContent=streak();
+  // Item 1: Next Protocol Change — nearest future milestone (cycle ends + upcoming starts).
+  (function renderMilestone(){
+    const el=document.getElementById('milestone-body'); if(!el) return;
+    const today=new Date(viewDate+'T12:00:00');
+    const cands=[];
+    D.compounds.forEach(c=>{
+      // upcoming cycle end (active compounds with an end date in the future)
+      if(c.active){
+        const end=getCompoundEndDate(c);
+        if(end){
+          const d=Math.round((new Date(end+'T12:00:00')-today)/86400000);
+          if(d>=0 && d<=60) cands.push({d, txt:esc(c.name)+' ends '+relDays(d)});
+        }
+      }
+      // upcoming start (compound with a start date in the future)
+      if(c.start){
+        const d=Math.round((new Date(c.start+'T12:00:00')-today)/86400000);
+        if(d>0 && d<=60) cands.push({d, txt:esc(c.name)+' begins '+relDays(d)});
+      }
+    });
+    if(!cands.length){ el.textContent='Nothing scheduled in the next 60 days.'; return; }
+    cands.sort((a,b)=>a.d-b.d);
+    const soon=cands[0].d<=7?' m-soon':'';
+    el.innerHTML='<span class="'+soon.trim()+'">'+cands[0].txt+'</span>';
+  })();
 
   const amItems=due.filter(c=>['am','any'].includes(bucket(c))||bucket(c)==='both');
   const pmItems=due.filter(c=>bucket(c)==='pm'||bucket(c)==='both');
@@ -1865,10 +1913,10 @@ function rToday(){
     const snzTo = snz ? snoozeEndsOn(c, slot||'', viewDate) : '';
     return`<div class="ci ${ok?'done':''} ${expiring&&!snz?'expiring':''} ${snz?'snoozed':''}" onclick="quickCheck('${c.id}','${slot||''}')">
       <div class="chk ${ok?'done':''}"><svg width="12" height="9" fill="none" viewBox="0 0 12 9"><path d="M1 4l3.5 3.5L11 1" stroke="var(--c-white)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="dot" style="background:${c.color}"></div>
       <div style="flex:1;min-width:0">
-        <div class="ci-name">${esc(c.name)}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}</div>
-        <div class="ci-sub">${c.dose} ${c.unit} · ${esc(c.route)}${pin?` · <span class="pin-badge" onclick="openCalcFor('${c.id}',event)">${pin}</span>`:''}</div>
+        <div class="ci-name"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}${snz?'<span class="snz-badge">'+(snzTo?'Back '+fmtD(snzTo):'Snoozed')+'</span>':(expiring?'<span class="exp-badge">'+expiryBadge(dLeft)+'</span>':'')}</div>
+        ${pin?`<div class="ci-draw" onclick="openCalcFor('${c.id}',event)">${pin}</div>`:''}
+        <div class="ci-sub">${c.dose} ${c.unit} · ${esc(c.route)}</div>
       </div>
       <button class="snooze-btn ${snz?'on':''}" title="${snz?'Un-snooze':'Snooze for this day'}"
         onclick="toggleSkip('${c.id}','${slot||''}',event)">
@@ -1906,8 +1954,14 @@ function rToday(){
   const ta=document.getElementById('tickall');
   const allDone=totalDoses>0&&doneDoses===totalDoses;
   ta.classList.toggle('hidden',totalDoses===0);
+  ta.classList.toggle('complete',allDone);
   document.getElementById('tick-chk').classList.toggle('done',allDone);
+  // Item 5: dynamic label
+  const lbl=document.querySelector('.tickall-lbl');
+  if(lbl) lbl.textContent = allDone ? "Today's protocol complete" : 'Tick All Done';
   document.getElementById('tick-cnt').textContent=`${doneDoses}/${totalDoses} done`;
+  // Item 6: expose completion state for FAB
+  window._todayComplete = allDone;
 }
 
 function quickCheck(pid,slot){
@@ -1973,7 +2027,17 @@ function rProto(){
     tbody.innerHTML=`<tr><td colspan="13" style="padding:32px;text-align:center;color:var(--text2)">No compounds yet — tap + Add Row</td></tr>`;
     return;
   }
-  tbody.innerHTML=D.compounds.map(c=>{
+  // Display-only ordering: active first, then by soonest cycle-end (nulls last);
+  // inactive sink to the bottom, also by end date. Does NOT mutate D.compounds.
+  const ordered=D.compounds.slice().sort((a,b)=>{
+    if(!!b.active - !!a.active) return (!!b.active) - (!!a.active); // active before inactive
+    const ea=getCompoundEndDate(a), eb=getCompoundEndDate(b);
+    if(ea && eb) return ea < eb ? -1 : ea > eb ? 1 : 0;   // soonest end first
+    if(ea && !eb) return -1;                              // dated before undated
+    if(!ea && eb) return 1;
+    return 0;                                             // both undated: keep stable
+  });
+  tbody.innerHTML=ordered.map(c=>{
     // Active toggle
     const tog=`<button class="act-tog ${c.active?'on':'off'}" onclick="togActive('${c.id}',event)" title="${c.active?'Active':'Inactive'}"><div class="act-knob"></div></button>`;
 
@@ -2604,6 +2668,9 @@ function nav(pg,btn){
 }
 function fabAction(){
   if(currentPage==='inv') openAddInv();
+  // Item 6: when today's protocol is complete, FAB opens Add Record (log) as the
+  // logical next action rather than implying outstanding doses. On Today, openLog
+  // is already the record workflow, so this reinforces it explicitly when done.
   else openLog(null);
 }
 function closeOv(id){document.getElementById(id).classList.add('hidden')}
