@@ -499,10 +499,10 @@ tr:active td{background:var(--card2)}
   border:none;color:var(--text-primary);font-size:20px;cursor:pointer;display:flex;
   align-items:center;justify-content:center}
 .cal-title{font-size:15px;font-weight:700;color:var(--text-primary)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px;clear:both}
 .cal-dow{font-size:10px;font-weight:650;text-transform:uppercase;color:var(--text-muted);
   text-align:center;padding:4px 0}
-.cal-day{aspect-ratio:1;border-radius:9px;background:var(--surface-secondary);border:none;
+.cal-day{height:44px;border-radius:9px;background:var(--surface-secondary);border:none;
   color:var(--text-secondary);font-size:13px;cursor:pointer;display:flex;align-items:center;
   justify-content:center;position:relative;font-family:var(--sans)}
 .cal-day.empty{background:transparent;cursor:default}
@@ -512,6 +512,18 @@ tr:active td{background:var(--card2)}
 .cal-day.selected{background:var(--brand);color:var(--text-on-brand);font-weight:700}
 .cal-day.future{opacity:.35;cursor:default}
 .cal-selected-lbl{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:10px}
+
+/* Records: grouped protocol-on-date box */
+.proto-box{background:var(--surface-primary);border:1px solid var(--border-primary);
+  border-radius:14px;padding:4px 0;margin-top:4px}
+.proto-box-item{display:flex;align-items:center;gap:11px;padding:11px 15px;
+  border-bottom:1px solid var(--border-subtle)}
+.proto-box-item:last-child{border-bottom:none}
+.proto-box-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.proto-box-info{flex:1;min-width:0}
+.proto-box-name{font-size:15px;font-weight:700;color:var(--text-primary)}
+.proto-box-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.proto-box-summary{font-size:11px;color:var(--text-muted);margin-top:1px}
 </style>
 </head>
 <body>
@@ -561,7 +573,7 @@ tr:active td{background:var(--card2)}
       <div style="margin-left:auto;text-align:right;align-self:center">
         <div style="font-size:15px;font-weight:700;color:var(--brand)" id="hdrTitle">Today</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:1px" id="hdrDate"></div>
-      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1707</div>
+      <div style="font-size:9px;color:var(--brand);opacity:0.5;margin-top:2px">v2.2 · build b0727.1725</div>
       </div>
     </div>
   </div>
@@ -2445,13 +2457,23 @@ function rHistByDate(){
     return;
   }
   snaps.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-  list.innerHTML=snaps.map(sn=>`<div class="hist-entry">
-    <div class="hist-hdr">
-      <div style="width:9px;height:9px;border-radius:50%;background:${sn.color||'var(--text-muted)'};flex-shrink:0"></div>
-      <div style="font-weight:700;color:var(--text-primary)">${esc(sn.name)}</div>
+  // Frequency/timing summary helper (e.g. "Daily · Both · 7 days/week")
+  function freqSummary(sn){
+    const freqMap={daily:'Daily',bid:'Twice daily',eod:'Every other day',e3d:'Every 3 days','2xweek':'2×/week','3xweek':'3×/week','4xweek':'4×/week','5xweek':'5×/week',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',prn:'As needed'};
+    const parts=[];
+    if(sn.freq) parts.push(freqMap[sn.freq]||sn.freq);
+    if(sn.time) parts.push(sn.time==='Both'?'AM + PM':sn.time);
+    if(sn.days && sn.days.length && sn.days.length<7) parts.push(sn.days.length+' days/week');
+    return parts.join(' · ');
+  }
+  list.innerHTML='<div class="proto-box">'+snaps.map(sn=>`<div class="proto-box-item">
+    <div class="proto-box-dot" style="background:${sn.color||'var(--text-muted)'}"></div>
+    <div class="proto-box-info">
+      <div class="proto-box-name">${esc(sn.name)}</div>
+      <div class="proto-box-sub">${esc(sn.dose||'—')} ${esc(sn.unit||'')} · ${esc(sn.route||'')}</div>
+      <div class="proto-box-summary">${esc(freqSummary(sn))}</div>
     </div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${esc(sn.dose||'—')} ${esc(sn.unit||'')} · ${esc(sn.route||'')}${sn.time?' · '+esc(sn.time):''}</div>
-  </div>`).join('');
+  </div>`).join('')+'</div>';
 }
 function calShift(delta){
   if(!_calYM) return;
@@ -2527,26 +2549,59 @@ function rHist(){
     '2xweek':'2x/Week','3xweek':'3x/Week','4xweek':'4x/Week','5xweek':'5x/Week',
     weekly:'Weekly',biweekly:'Every 2 Wks',monthly:'Monthly',prn:'As Needed'};
 
-  el.innerHTML=items.map((h,i)=>{
-    const s=h.snap;
-    return`<div class="hist-entry">
-      <div class="hist-hdr">
-        <div style="width:9px;height:9px;border-radius:50%;background:${s.color||'var(--accent)'}"></div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700">${i===0?'Current':'Version '+(items.length-i)}</div>
-          <div class="hist-date">${fmtDT(h.savedAt)}</div>
+  el.innerHTML=(function(){
+      // Collapse consecutive identical protocols; label by effective date range + summary.
+      const FL={daily:'Daily',bid:'2×/day',eod:'Every other day',e3d:'Every 3 days','2xweek':'2×/week','3xweek':'3×/week','4xweek':'4×/week','5xweek':'5×/week',weekly:'Weekly',biweekly:'Biweekly',monthly:'Monthly',prn:'As needed'};
+      const sig=sn=>[sn.dose,sn.unit,sn.freq,sn.time,(sn.days||[]).join(','),sn.route].join('|');
+      // items are newest-first; collapse runs of identical signature
+      const groups=[];
+      items.forEach(h=>{
+        const g=groups[groups.length-1];
+        if(g && sig(g.snap)===sig(h.snap)){ g.from=h.savedAt; } // extend older bound
+        else groups.push({snap:h.snap, id:h.id, from:h.savedAt, to:h.savedAt});
+      });
+      const fmtRange=(g,idx)=>{
+        const toD=idx===0?'now':fmtD(g.to);
+        const fromD=fmtD(g.from);
+        return fromD===fmtD(g.to)&&idx!==0 ? fromD : (fromD+' – '+toD);
+      };
+      const summary=sn=>{
+        const p=[sn.dose+' '+(sn.unit||'')];
+        if(sn.freq) p.push(FL[sn.freq]||sn.freq);
+        if(sn.time) p.push(sn.time==='Both'?'AM+PM':sn.time);
+        if(sn.days&&sn.days.length&&sn.days.length<7) p.push(sn.days.length+'d/wk');
+        return p.join(' · ');
+      };
+      return groups.map((g,idx)=>`<div class="hist-entry">
+        <div class="hist-hdr">
+          <div style="width:9px;height:9px;border-radius:50%;background:${g.snap.color||'var(--brand)'}"></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700;color:var(--text-primary)">${idx===0?'Current protocol':'Previous'}</div>
+            <div class="hist-date">${fmtRange(g,idx)}</div>
+          </div>
+          ${idx>0?`<button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="importCompoundHistory('${g.id}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg> Restore</button>`:''}
         </div>
-        ${i>0?`<button class="btn btn-s btn-sm" style="font-size:11px;padding:5px 10px" onclick="importCompoundHistory('${h.id}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg> Import</button>`:'<span style="font-size:11px;color:var(--text2)">Current</span>'}
-      </div>
-      <div class="hist-body">
-        <div class="hist-field"><div class="hist-field-l">Dose</div><div class="hist-field-v">${esc(s.dose)||'—'} ${esc(s.unit)||''}</div></div>
-        <div class="hist-field"><div class="hist-field-l">Frequency</div><div class="hist-field-v">${FL2[s.freq]||s.freq||'—'}</div></div>
-        <div class="hist-field"><div class="hist-field-l">Timing</div><div class="hist-field-v">${s.time||'—'}${s.clock?' · '+s.clock:''}</div></div>
-        <div class="hist-field hist-days"><div class="hist-field-l">Days</div><div class="hist-field-v">${fmtDays(s.days)}</div></div>
-        ${s.notes?`<div class="hist-field hist-days"><div class="hist-field-l">Notes</div><div class="hist-field-v" style="font-weight:400;font-size:12px">${esc(s.notes)}</div></div>`:''}
-      </div>
-    </div>`;
-  }).join('');
+        <div style="padding:11px 14px;font-size:14px;color:var(--text-primary);font-weight:600">${esc(summary(g.snap))}</div>
+        <div style="padding:0 14px 11px;font-size:12px;color:var(--text-secondary)">${esc(g.snap.route||'')}${g.snap.start?' · started '+fmtD(g.snap.start):''}</div>
+      </div>`).join('');
+    })();
+}
+
+  async function importCompoundHistory(histId){
+  const h = (D.history||[]).find(e=>e.id===histId);
+  if(!h) return;
+  const snap = h.snap;
+  if(!(await ptConfirm('Import this version of '+esc(h.name)+' into your current protocol?'))) return;
+  const idx = D.compounds.findIndex(c=>c.id===h.cid);
+  if(idx===-1){
+    D.compounds.push({...snap, id:h.cid});
+  } else {
+    const keep = {id:D.compounds[idx].id, name:D.compounds[idx].name};
+    D.compounds[idx] = {...snap, ...keep};
+  }
+  save();
+  render();
+  ptAlert(h.name+' protocol restored!');
 }
 
 
